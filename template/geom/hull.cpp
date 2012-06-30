@@ -34,6 +34,7 @@ struct P {
 	P operator*( double s ) { return P( x * s, y * s ); }
 	double operator*( P p ) { return x * p.x + y * p.y; }
 	double operator^( P p ) { return x * p.y - y * p.x; }
+	bool operator<( const P p) const { return x != p.x ? x < p.x : y < p.y; }
 
 	double mag() { return sqrt( x * x + y * y ); }
 	double mag2() { return x * x + y * y; }
@@ -49,26 +50,26 @@ double area(P a, P b, P c) {
 	return 0.5 * ( ( b - a ) ^ ( c - a ) );
 }
 
-bool lli( P a, P b, P c, P d, P &res ) {
-	if( feq( ( b - a ) ^ ( d - c ), 0.0 ) ) return false;
-	res = a + ( b - a ) * ( area( c, d, a )  / ( area( c, d, a ) - area(c, d, b) ) );
-	return true;
+double ccw(P a, P b, P c) {
+	return area(a, b, c) > EPS;
 }
 
-bool ssi(P a, P b, P c, P d, P &res) {
-  if( ! lli(a, b, c, d, res) ) {
-    return false;
-  } else {
-    if( btw(a, res, b) && btw(c, res, d) ) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-}
+#define N 10000
 
-bool btw( P a, P b, P c ) {
-	return feq( ( b - a ).mag() + ( c - b ).mag(), ( a - c ).mag() );
+P ch[N];
+int hn;
+
+int hull(P p[], int n){
+	sort(p, p + n);
+	hn = 0;
+	for(int i = 0; i < n; i++) {
+		while( hn >= 2 && !ccw(ch[hn - 2], ch[hn - 1], p[i]) ) hn--;
+		ch[hn++] = p[i];
+	}
+	for(int S = hn, i = n - 2; i >= 0; i--) {
+		while( hn >= S && hn >= 2 && !ccw( ch[hn - 1], ch[hn - 2], p[i])) hn--;
+		ch[hn++] = p[i];
+	}
 }
 
 int main() {
