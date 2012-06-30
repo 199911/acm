@@ -1,0 +1,20 @@
+CUHK ACM SUMMER TRAINING 2012 
+Week 6
+
+Topic: Computational Geometry I
+
+Logistics:
+1. Basic Data Structures and Operations
+  * Object Types: points, segments, lines, polygons
+  * Basic Operations: dot product, cross product, linear operations
+  * Basic Principle for Geometric Problem
+2. Basis Computation:
+  * signed area of triangle
+  * line/line intersection
+  * angle between vector
+  * rotation / projection
+3. Basic Geometric Problem
+  * Convexity and Convex Hull
+  * Area finding
+  * Inside/Outside Determination
+  *  

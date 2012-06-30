@@ -1,0 +1,265 @@
+CUHK ACM Training 2012 Summer Week 5
+
+Topic: Segment Tree
+
+Outline:
+- Motivation: 
+- Basis: 
+  * Idea
+  * Implementation
+- Example
+  * point update, range query min/max
+  * range add value, range query sum
+  * range set to value, range query sum
+  * range add value, range query # of nonzero slots
+- Problem
+- Applications:
+  * Rectangle Union
+  * 2D Segment Tree and Othorgonal Range Query
+  * Technique Discretization
+- Reference
+
+
+1. Motivation 
+  Want to handle operations involving intervals/segments. E.G. find the minimum 
+element in a continuous subarray. Supports O(log n) update && query.
+
+2. Basis
+  2.1 Idea
+    Segment Tree (a.k.a interval tree) is a complete bianary tree that 
+  partitions a interval in form of [1, 2^n] into Dyatic Intervals, i.e. 
+  intervals in form of [j * 2^k, (j + 1) * 2^k]. For example, a segment 
+  tree on the interval [1, 8] will looks like the following
+
+                [   1,   8   ]
+                /            \
+             [1, 4]          [5, 8]
+             /    \          /      \
+        [1, 2]  [3, 4]    [5, 6]  [7, 8]
+        /    \   /   \     /  \    /   \
+       [1] [2] [3]  [4]  [5]  [6] [7]   [8]
+    
+    Each node of the segment tree stores information of its corresponding intervals, 
+  i.e. the minimum element, the sum, etc. This allow us to perform efficient query 
+  on intervals. The following theorem guarantee its running time 
+
+  [Theorem 1] Any interval [a, b] can be partition by O(log n) Dyadic intervals
+  [Hint] On each layer we need at most 2 intervals (Why).
+
+    This implies all update/query can be perform in O(log n)
+
+  2.2 Implementation
+    Segment Tree is a complete binary tree, which enable us to implement is on
+  array of size O(n) in the same manner we implement a binary heap. The rule is
+  as follows:
+    * root is of index 1
+    * left child of node p is p * 2
+    * right child of node p is p * 2 + 1
+
+    Here's the demo code:
+
+    ---------------------------------------------------------------------------
+    // Segment Tree Node Structure
+    struct Foo {
+      int l, r;                      // node representing Dyadic Interval [l, r]
+      int sum;                      // problem of segment trees involves playing 
+                                    // with this additional attribute
+    };
+
+    Foo T[100000];                  // Beware of the size of the array
+                                    // usually is the power of 2 greater
+                                    // than 4 * # of node
+
+    // --------- update ---------------
+    // add a to each element in the interval [l, r]
+    // main function call will be 
+    //    update(1, l, r, a);
+    //
+    void update(int p, int l, int r, int a) {
+      if( l <= T[p].l && r >= T[p].r ) {  
+        // the update interval is contain in the dyadic interval at node p
+        T[p].sum += a * ( r - l + 1);
+        return;
+      } else if ( r < T[p].l || l > T[p].r ) {
+        // the update interval is disjoint with the dyadic interval at node p
+        return;
+      } else {
+        update(p * 2, l, r, a);
+        update(p * 2 + 1, l, r, a);
+        T[p].sum = T[p * 2].sum + T[p * 2 + 1].sum;
+      }
+    }
+
+    // ---------- query -----------------
+    // find the sum of elements in the interval [l, r]
+    // main function call will be:
+    // query(1, l, r)
+    
+    int query(int p, int l, int r) {
+      if( l <= T[p].l && r >= T[p].r ) {  
+        return T[p].sum;
+      } else if ( r < T[p].l || l > T[p].r ) {
+        return 0;
+      } else {
+        return query(p * 2, l, r) + query(p * 2 + 1, l, r);
+      }
+    }
+
+    ----------------------------------------------------------------------------
+
+3. Examples
+  3.1 Point Update, Range Query Min/Max
+    Solution: Store Min/Max at each node
+  
+  3.2 Range Add Value, Range Query Sum
+    Solution:  Sample Code :D
+  
+  3.3 Range Set Value, Range Query Sum
+    Solution:  
+      Store the following attributes:
+        *  or:    a boolean value indicate whether the whole interval has been set
+        *        to a particular value
+        *  val:  the value that the interval was set to if or = true
+        *  sum:  the sum of the value
+      How to Update?
+        At each node p:
+          (1) if T[p].or is true, pass [or] and [val] to the two children of p
+              set p's (or) to false
+          (2) if p's interval is contained in the update interval: update p's
+              [or], [val], [sum]
+          (3) if they are disjoint, return
+          (4) update two children, then update p's sum
+      How to Query?
+        The same as above.
+
+  3.4 Range Add Value (+1/-1), Range Query Number of Nonzero Elements
+    Solution:
+      Store the following attributes: 
+        * sam:  whether the values in the interval are the same
+        * val:  the value if all value are the same
+        * slt:  number of nonzero slots
+      Update/Query is left as an exercise:
+        [HINT] similar to above.
+
+4. Problem:
+  4.1 Basic Problem: 
+    NOTE: MUST DO if you want to use segment tree in the regional :P
+    * POJ 2528: Mayor's Poster
+    * POJ 3468: A Simple Problem with Integers
+    * POJ 2777: Count Color
+  
+  4.2 Additional Problem:
+    NOTE: if you want more practise ( segment tree appears in mainland regional
+        quite a lot :D )
+    * POJ 2828: Buy Tickets
+    * POJ 2886: Who Gets the Most Candies? 
+    * POJ 2750: Potted Flower
+  
+  4.3 Challenging Problem:
+    NOTE: you can benefic quite a lot from attempting to solve these problems
+    * POJ 3225: Help with Intervals
+    * SPOJ 2227: IOI05 Mountains
+
+5. Applications:
+  5.1 Rectangle Union:
+    Problem Statement: 
+      Given N axis aligned rectangle, what's the area of their union?
+
+    Solution:
+      (1) O(N^3) solution (brief): 
+        Subdivide the plane into O(N^2) minimal rectangle using all horizontal and vertical edges,
+        for each rectangle, O(N) to determine whether it's contained in any rectange or not
+
+      (2) O(N^2) solution (brief):
+        [Style 1: Partial Sum]: 
+          The solution employ the same idea of O(N^3) solution, but use partial sum to construct a table
+          that allow us to know in constant time whether a minimal rectangle is contained in any given 
+          rectangle or not.
+
+          2D Partial Sum:
+            Statement: 
+              Want to find the sum of any subarray A[i...j][k...l] in a two dimensional array A[N][M]
+
+            Method:
+              construct a table PS[i][j] = sum { A[x][y]: 1 <= x <= i, 1 <= y <= j }. Then
+            A[i...j][k...l] = PS[j][l] + PS[i-1][k-1] - PS[j][k-1] - PS[i-1][l].
+              How to construct? Dynamic Programming.
+
+          How to construct the look up table?
+            Statement: 
+              Want to construct a table S[N][N] such that S[i][j] := number of rectangle covering
+            the mimimal rectangle at row i, column j.
+            Method:
+              construct another table TS[N][N] the encode the update on partial sum:
+                A rectangle [i...j] * [k...l]:
+                TS[j][l]++; TS[i-1][k-1]++; TS[j][k-1]--; TS[i-1][l]--.
+              Recover PS from TS:
+                (Rough Idea, beware of i, j = 0)
+                for(int i = 0; i < n; i++) 
+                  for(int j = 0; j < n; j++) 
+                    PS[i][j] = PS[i-1][j] + PS[i][j-1] - PS[i-1][j-1] + TS[i][j];
+              Recover S from PS:
+                left as exercise
+
+        [Style 2: Sweep Line]:
+          Idea: 
+            Similar to integration, but use vertical edges as events to discretize the integration.
+          Use an imaginary vertical line sweeping from left to right. Want to sum up the segments 
+          where the intersection of rectangles and sweepline is nonzero
+
+          Basis: 
+            Rough Idea: construct an sorted event queue => go through the event one by one =>
+                        maintain a set A that encode the rectangle intersecting the 
+                        sweepline => sum up the area the intersect the sweepline
+            Events:
+              Left Edges: add the edge to the array 
+              Right Edges: remove the edge from the array
+
+            At each events:
+              Compute the length of the union of the edges in the set A (how to do it in O(N)?),
+            then add to the total area.
+
+      (3) O(N log N) Solution.
+        Idea: update and query on each event can be done in O(log N) using the segment tree
+              I.E. add an edge: add to an interval
+                   remove an edge: subtract from an interval
+                   find the union: query the number of nonzero slots
+
+  5.2 2D Segment Tree and Orthogonal Range Query
+    Problem Statement:
+      Given a bunch of point in the plane, build data structure that supports the following query
+        Query: Given a axis aligned rectangle, find the number of points in the rectangle
+
+    Solution: 2D Segment Tree
+
+    5.2.1 What's 2D Segment Tree?
+      It's just a 1D segment tree where each node itself is a segment tree.
+
+    5.2.2 How To Implement Segment Tree?
+      Just create a 2D array of node
+
+    5.2.3 How to perform query/update?
+      Query/update dimension by dimension. Pending....
+
+  5.3 Discretization
+    Many application of segment tree involves segments over a large intervals, or an interval over the real number, 
+  where building O(N) memory segment tree is not feasible. In the case where there's only finitely many coordinate 
+  that will appeear in the problem, we can replace each coordinate with its rank and still preserve certain property 
+  that enable us to build segment tree over its rank not the coordinate itsself.
+
+    Sample Code as follows:
+
+    ----------------------------------------------------------------------
+    int A[N], n;    // array of all possible coordinate
+    
+    sort(A, A + n);
+    n = unique(A, A + n) - A;
+
+    // recover the rank of a coordinate x
+    int rank = lower_bound(A, A + n, x) - A;
+    ----------------------------------------------------------------------
+
+6. Reference
+  Wikipedia: http://en.wikipedia.org/wiki/Segment_tree
+  Topcoder: http://community.topcoder.com/tc?module=Static&d1=tutorials&d2=lowestCommonAncestor#Segment_Trees
+  NTNU: http://www.csie.ntnu.edu.tw/~u91029/PointInterval.html
