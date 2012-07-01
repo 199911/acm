@@ -19,7 +19,9 @@ using namespace std;
 
 #define N 10000
 
-int mul[N], key[N], left[N], right[N], color[N], p[N], root, n;
+
+int mul[N], key[N], left[N], right[N], color[N], p[N], root, n;	// tree structure
+int mhd, mnt[N];	// memonry
 
 void init() {
 	memset(left, -1, sizeof(left));
@@ -27,8 +29,23 @@ void init() {
 	memset(p, -1, sizeof(right));
 	memset(mul, 0, sizeof(mul));
 
+	REP(i, N -1) mnt[i] = i + 1; 
+	mnt[N - 1] = -1;
+	mhd = 0;
+
 	n = 0;
 	root = -1;
+}
+
+int new_node() {
+	int ret = mhd;
+	mhd = mnt[mhd];
+	return ret;
+}
+
+void free_node(int x) {
+	mnt[x] = mhd;
+	mhd = x;
 }
 
 // rotate x to the left of its right child
@@ -94,11 +111,12 @@ void fix_insert(int x) {
 			}
 		}
 	}
+	color[root] = 0;
 }
 
 int insert(int k) {
 	// find
-	int x, y;
+	int x = root, y = -1;
 	while ( x != -1 ) {
 		y = x;
 		if ( key[x] == k ) {
@@ -109,19 +127,50 @@ int insert(int k) {
 		}
 	}
 
-	int z = n++;
+	int z = new_node(); 
 	key[z] = k;
 	left[z] = right[z] = -1;
 	p[z] = y;
+	if( y == -1 ) root = z;
 	color[z] = 1; 
+	if( k < key[y] ) left[y] = z;
+	else right[y] = z;
 
 	fix_insert(z);
 
 	return 1;
 }
 
+void print(int x) {
+	if( left[x] != -1 ) print( left[x] );
+	printf("%d ", key[x] );
+	if( right[x] != -1 ) print( right[x] ); 
+}
 
+int remove(int k) {
+	int x = root;
+	while( x != -1 && key[x] != k ) x = k < key[x] ? left[x] : right[x];
+	if( x == -1 ) return -1;
+
+}
 
 int main() {
+	init();
+	REP(i, 100) {
+		printf("insert %d\n", i);
+		insert(i);
+	}
+	printf("%d\n", n);
+
+	printf("root = %d\n", root);
+	print( root );
+	puts("");
+
+	/*
+	REP(i , 100) {
+		printf("%d: %d %d %d\n", i, key[i], left[i], right[i]);
+	}
+	*/
+
 	return 0;
 }
