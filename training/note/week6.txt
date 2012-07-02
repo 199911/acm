@@ -4,17 +4,65 @@ Week 6
 Topic: Computational Geometry I
 
 Logistics:
-1. Basic Data Structures and Operations
+= Basic Data Structures and Operations
   * Object Types: points, segments, lines, polygons
   * Basic Operations: dot product, cross product, linear operations
   * Basic Principle for Geometric Problem
-2. Basis Computation:
-  * signed area of triangle
+= Basis Computation:
+  * signed area of triangle / polygon area
   * line/line intersection
+  * distances
   * angle between vector
   * rotation / projection
-3. Basic Geometric Problem
+  * sorting by angle
+= Basic Geometric Problem
   * Convexity and Convex Hull
-  * Area finding
   * Inside/Outside Determination
-  *  
+  * Sweepline: Any Segment Intersection & Discrepancy Calculation
+  * D&C: Closest Pair
+  * Rotating CaFurthest Pair
+= Reference
+
+
+1. Basic Data Structures and Operations
+  # Geometric Objects
+      Point/Vector/Vertex is the most basic geometric object. A good
+    implmentation of point structure is essential for solving geometric
+    problems.
+
+  ---------------------------------------------------------------------
+    // Point Structure
+    struct P {
+      double x, y;
+      P() {}
+      P( double x, double y ): x(x), y(y) {}
+      void eat() { scanf( "%lf%lf", &x, &y ); }
+      void out() { printf( "(%f, %f)", x, y ); }
+
+      P operator+( P p ) { return P( x + p.x, y + p.y ); }
+      P operator-( P p ) { return P( x - p.x, y - p.y ); }
+      P operator*( double s ) { return P( x * s, y * s ); }
+      double operator*( P p ) { return x * p.x + y * p.y; }
+      double operator^( P p ) { return x * p.y - y * p.x; }
+      bool operator<( const P p ) const { return x != p.x ? x < p.x : y < p.y; }
+      bool operator==( const P p ) const { return feq( x, p.x ) && feq( y, p.y ); }
+
+      double mag() { return sqrt( x * x + y * y ); }
+      double mag2() { return x * x + y * y; }
+
+      P nor() { return * this * ( 1.0 / mag() ); }
+
+      P rot() { return P( -y, x ); }
+      P rot( double si, double co ) { return P( x * co - y * si, x * si + y * co ); }
+      P rot( double th ) { return rot( sin( th ), cos( th ) ); }
+    };
+  ----------------------------------------------------------------------
+
+      Point structure encapsulate many vector operators, like addition,
+    subtraction, dot/cross product, etc.
+
+      
+      
+
+
+

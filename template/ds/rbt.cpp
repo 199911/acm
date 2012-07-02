@@ -74,6 +74,23 @@ void rrot(int x) {
 	p[x] = y;
 }
 
+int find_min(int x) {
+  int y = p[x];
+  while( x != -1 ) {
+    y = x;
+    x = left[x];
+  }
+  return y;
+}
+
+int successor(int x) {
+  if( right[x] != -1 ) return find_min( right[x] );
+  while ( p[x] != -1 && x == right[p[x]] ) {
+    x = p[x];
+  }
+  return p[x];
+}
+
 void fix_insert(int x) {
 	while( color[p[x]] == 1) {
 		if( p[x] == left[p[p[x]]] ) {
@@ -115,7 +132,7 @@ void fix_insert(int x) {
 }
 
 int insert(int k) {
-	// find
+	// find the
 	int x = root, y = -1;
 	while ( x != -1 ) {
 		y = x;
@@ -151,7 +168,45 @@ int remove(int k) {
 	int x = root;
 	while( x != -1 && key[x] != k ) x = k < key[x] ? left[x] : right[x];
 	if( x == -1 ) return -1;
+  if( --mul[x] ) return x;
 
+  // remove the node 
+  // case 1 : both child exists
+  int y, z;
+  if ( left[x] != -1 && right[x] != -1 ) { 
+    y = find_min( right[x] ); // find successor
+    if ( right[y] != -1 ) {
+      if ( p[y] == -1 ) root = right[y];
+      else if ( y == left[p[y]] ) left[p[y]] = right[y];
+      else right[p[y]] = right[y];
+      p[right[y]] = p[y];
+    } 
+    key[x] = key[y];
+    // copy the satellite data of y into x if neccessary
+    free_node( y );
+  } else if ( left[x] == -1 && right[x] == -1 ) {
+    y = x;
+    free_node( x );
+  } else {
+    y = x;
+    if ( left[y] != -1 ) {
+      p[left[y]] = p[y];
+      if ( p[y] == -1 ) root = left[y];
+      else if ( y = left[p[y]] ) left[p[y]] = left[y];
+      else right[p[y]] = left[y];
+    } else {
+      p[right[y]] = p[y];
+      if ( p[y] == -1 ) root = right[y];
+      else if ( y = left[p[y]] ) left[p[y]] = right[y];
+      else right[p[y]] = right[y];
+    }
+    free_node( y );
+  }
+
+  if( color[y] == 0 ) 
+    fix_remove(y);
+
+  return y;
 }
 
 int main() {
@@ -165,12 +220,6 @@ int main() {
 	printf("root = %d\n", root);
 	print( root );
 	puts("");
-
-	/*
-	REP(i , 100) {
-		printf("%d: %d %d %d\n", i, key[i], left[i], right[i]);
-	}
-	*/
 
 	return 0;
 }
