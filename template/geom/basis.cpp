@@ -47,24 +47,30 @@ struct P {
 	P rot( double th ) { return rot( sin( th ), cos( th ) ); }
 };
 
+
+// signed area of triangle
 double area(P a, P b, P c) {
 	return 0.5 * ( ( b - a ) ^ ( c - a ) );
 }
 
+// turn left
 bool ccw( P a, P b, P c ) {
   return fge( area( a, b, c ), 0.0 );
 }
 
+// turn strictly left
 bool Ccw( P a, P b, P c ) {
   return fgt( area( a, b, c ), 0.0 );
 }
 
+// line line intersection
 bool lli( P a, P b, P c, P d, P &res ) {
 	if( feq( ( b - a ) ^ ( d - c ), 0.0 ) ) return false;
 	res = a + ( b - a ) * ( area( c, d, a )  / ( area( c, d, a ) - area(c, d, b) ) );
 	return true;
 }
 
+// segment segment intersection
 bool ssi(P a, P b, P c, P d, P &res) {
   if( ! lli(a, b, c, d, res) ) {
     return false;
@@ -87,8 +93,6 @@ double parea( P p[], int n ) {
     ret += area( p(0.0, 0.0), p[i], p[(i + 1) % n]);
   return fabs( ret );
 }
-
-
 
 int main() {
 	return 0;

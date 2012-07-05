@@ -59,24 +59,6 @@ bool Ccw( P a, P b, P c ) {
   return fgt( area( a, b, c ), 0.0 );
 }
 
-bool lli( P a, P b, P c, P d, P &res ) {
-	if( feq( ( b - a ) ^ ( d - c ), 0.0 ) ) return false;
-	res = a + ( b - a ) * ( area( c, d, a )  / ( area( c, d, a ) - area(c, d, b) ) );
-	return true;
-}
-
-bool ssi(P a, P b, P c, P d, P &res) {
-  if( ! lli(a, b, c, d, res) ) {
-    return false;
-  } else {
-    if( btw(a, res, b) && btw(c, res, d) ) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-}
-
 bool btw( P a, P b, P c ) {
 	return feq( ( b - a ).mag() + ( c - b ).mag(), ( a - c ).mag() );
 }
