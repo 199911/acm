@@ -20,15 +20,15 @@ Logistics:
   * Inside/Outside Determination
   * Sweepline: Any Segment Intersection & Discrepancy Calculation
   * D&C: Closest Pair
-  * Rotating CaFurthest Pair
+  //  * Rotating Calipers: Furthest Pair, Polygon Width, Smallest Enclosing
+  Rectangle
 = Reference
 
 
 1. Basic Data Structures and Operations
-  # Geometric Objects
-      Point/Vector/Vertex is the most basic geometric object. A good
-    implmentation of point structure is essential for solving geometric
-    problems.
+  1.1 Geometric Objects
+    1.1.1 Points
+      or says vectors/vertices
 
   ---------------------------------------------------------------------
     // Point Structure
@@ -59,10 +59,186 @@ Logistics:
   ----------------------------------------------------------------------
 
       Point structure encapsulate many vector operators, like addition,
-    subtraction, dot/cross product, etc.
+    subtraction, dot/cross product, etc. A correct implmentation is the key to
+    many geometric problems
 
+      1.1.2 Segments / Lines
+        Usually represented by two end points / two points on the line. Slope +
+      y-intersect is not encouraged.
+
+      1.1.3 Polygons
+        Represented by a list of vertices in ccw/cw order. 
+
+      1.1.4 More advanced topic
+        Planar Subdivision/Graph, arrangement of lines, etc.
+
+    1.2 Basic Operations
+      1.2.1 Linear Operators
+        * addition, subtraction, scalar multiplication
+
+      1.2.1 Dot/Cross Product
+        * definition 
+        * application:
+            dot product: projection, determine acute/obtuse angle, computing
+          area.
+
+    1.3 Basic Principle of Computational Geometry
+      * Floating Point Precision
+        # Never use == for float/double, 
+        # Instead use this:
+      ------------------------------------------
+          #define EPS 1e-9
+          #define feq(a,b) (fabs((a)-(b))<EPS)
+          #define fgt(a,b) ((a)>(b)+EPS)
+          #define fge(a,b) ((a)>(b)-EPS)
+          #define flt(a,b) ((a)<(b)-EPS)
+          #define fle(a,b) ((a)<(b)+EPS)
+      ------------------------------------------
+        # < and > is safe most of the time when equality doesn't matter, e.g.
+      in compare function for sorting. 
+
+      * If you can help it, do not use division(e.g. slope). Most of the 
+      regional problem will have testcases killing that.
+
+  2. Basic Geometric Computation
+    2.1 Signed Area of Triangle
+      Signed Area of Triangle ABC is given by AB (cross product) AC / 2. The
+    value is positive iffs AB turns strictly counter clockwise to AC.
+      * computing area of convex polygon
+      * computing area of simple polygon
+
+    2.2 line/line intersection
+      * solving equation: undesirable precision error
+      * parametric form: solve s and t such that
+          A + s AB = C + t CD
+        then
+          A X AB = C X AB + t CD X AB
+          A X CD + s AB X CD = C X CD
+        then
+          t = ( CA X AB ) / ( CD X AB )
+          s = ( AC X CD ) / ( AB X CD )
+      * signed area: easy to visualize
+
+    2.3 Distances
+      * point/line distance
+      * point/segment distance
+      * segment/segment distance
+      * polygon/polygon distance
+          ( Example Problem Last Year : Lily Leaf ) 
+
+    2.4 Rotation / Projection
+      cos(x + y) = cos(x) cos(y) - sin(x) sin(y)
+      sin(x + y) = sin(x) cos(y) + cos(x) sin(y)
       
-      
+      Example Problem: similar polygon
 
+    2.5 Sorting By Angle
+      required in sweepline algorithm
 
+      -------------------------------------------
+      bool comp( P a, P b ) {
+        if( a.y > 0 ^ b.y > 0 ) {
+          return a.y > 0;
+        } else {
+          return a ^ b > 0;
+        }
+      }
+      -------------------------------------------
 
+ 3. Geometric Problem
+  3.1 Convexity and Convex Hull
+    Convex Polygon: 
+      P is convex is for all A \in P and B \in P, C \in AB, C \in P. 
+
+    Convex Hull: 
+      Given a set S of n points, find the polygon of minimum area that enclose
+    all n points. 
+
+    Solution: 
+      1) Graham Scan.
+        * Find the left-bottommost point, sort all remaining point with that point
+        as pivot
+        * Go through the list of sorting points one by one, maintain the convex
+        hull of all visited vertices using a stack.
+
+        Reference: http://www.personal.kent.edu/~rmuhamma/Compgeometry/MyCG/ConvexHull/GrahamScan/grahamScan.htm
+
+      2) Andrew's Monotone Chain
+        * Sorting the list of point in increasing x then y.
+        * Go from first to last, execute step 2 in GC
+        * Go from last to first, execute step 2 in GC
+
+        Reference: http://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain
+
+  3.2 Inside/Outside Determination
+    Problem:
+      Given a polygon and a query point, determine whether the point is in the
+    polygon?
+
+    a. Convex Polygon
+    b. Simple Polygon:
+      * Ray Method: Shoot a ray to the right, find the number of intersection
+      * Winding Number Method: Go through the polygon, how many times has your
+      pointer wind around the query point.
+        * outside: 0
+        * inside: +1 or -1
+
+  3.3 Any Segment Intersection:
+    Problem: 
+      Given a set of n segments, find out whether there is a pair of segment 
+    intersecting each other.
+
+    Solution: 
+      O(n^2): trivial
+      O(n log n): sweepline
+          sweep from left to right, maintain the set of segments intersecting
+        the sweepline, order them by y coordinate of their intersection with the
+        sweepline (use projection). At each event, check the adjacent pair of
+        segments.
+
+          question: what's the event? how to implement the set of intersecting
+                    segments?
+
+    Problem: (Discrepancy)
+      Given a set of points in a circle, find a line that bisect the
+    circle which maximize the ratio: 
+        # of point in the bisection / # of area of the bisection
+
+    Observation: 
+      The bisector either go through two points, or go through one point and
+    being orthogonal to the line connecting the point and the center of the
+    circle.
+
+    Solution:
+      For each point:
+        sort all other points by angle with the point as pivot. Go through the
+      list and maintain two pointers to update the maximum descrepancy.
+
+    Remark:
+      There's an O(n^2) algorithm for the problem.
+
+  3.4 Closest Pair
+    Problem:
+      Given a set of points, find the closest pair of points.
+
+    Solution:
+      1. sort the points by x coordinate then y.
+      2. recursively solve the problem for the left and the right halves.
+      3. let d be the minimum of two in step 2. Find the points in the strip in
+      the center with width 2d. Enumerate all pairs of points with distance less
+      than d.
+
+  3.5 Rotating Calipers
+    Problem: Farthest Pair
+      Given a set of points, find the farthest pair.
+
+    Solution:
+      Idea: Exhaust all pairs of antipodal points ( a pair of antipodal points
+            p and q are two points that there exists two parallel line, one
+            through each, that every other point is lying in between.
+
+      Algorithm: 
+        Keep track of two pointers being pairs of antipodal points. At each
+      iteration, advance one of them, then advance another until it reaches the
+      point furthest away from the segment formed by the first point and its
+      successor. Update the maximum distance all along.

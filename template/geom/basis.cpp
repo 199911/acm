@@ -81,6 +81,15 @@ bool btw( P a, P b, P c ) {
 	return feq( ( b - a ).mag() + ( c - b ).mag(), ( a - c ).mag() );
 }
 
+double parea( P p[], int n ) {
+  double ret = 0;
+  REP( i, n ) 
+    ret += area( p(0.0, 0.0), p[i], p[(i + 1) % n]);
+  return fabs( ret );
+}
+
+
+
 int main() {
 	return 0;
 }
