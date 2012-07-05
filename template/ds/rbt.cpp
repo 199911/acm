@@ -148,6 +148,7 @@ int insert(int k) {
 	key[z] = k;
 	left[z] = right[z] = -1;
 	p[z] = y;
+  mul[z] = 1;
 	if( y == -1 ) root = z;
 	color[z] = 1; 
 	if( k < key[y] ) left[y] = z;
@@ -159,49 +160,59 @@ int insert(int k) {
 }
 
 void print(int x) {
+  printf( " left " );
 	if( left[x] != -1 ) print( left[x] );
+  printf( " up ");
 	printf("%d ", key[x] );
+  printf( " right " );
 	if( right[x] != -1 ) print( right[x] ); 
+  printf( " up ");
+}
+
+void set_parent_child( int pa, int c ) {
+  if ( pa == -1 ) return;
+  if ( p[pa] == -1 ) root = c;
+  else if ( pa == left[p[pa]] ) left[p[pa]] = c;
+  else right[p[pa]] = c;
+  if ( c != -1 ) p[c] = p[pa];
+}
+
+void fix_remove( int x ) {
 }
 
 int remove(int k) {
 	int x = root;
 	while( x != -1 && key[x] != k ) x = k < key[x] ? left[x] : right[x];
+  printf( "find %d\n", x );
 	if( x == -1 ) return -1;
   if( --mul[x] ) return x;
+  printf( "haha\n" );
 
   // remove the node 
   // case 1 : both child exists
   int y, z;
   if ( left[x] != -1 && right[x] != -1 ) { 
     y = find_min( right[x] ); // find successor
-    if ( right[y] != -1 ) {
-      if ( p[y] == -1 ) root = right[y];
-      else if ( y == left[p[y]] ) left[p[y]] = right[y];
-      else right[p[y]] = right[y];
-      p[right[y]] = p[y];
-    } 
+    // 
+    set_parent_child( y, right[y] );
+    //
     key[x] = key[y];
     // copy the satellite data of y into x if neccessary
     free_node( y );
   } else if ( left[x] == -1 && right[x] == -1 ) {
     y = x;
+    set_parent_child( y, -1 );
     free_node( x );
   } else {
     y = x;
     if ( left[y] != -1 ) {
-      p[left[y]] = p[y];
-      if ( p[y] == -1 ) root = left[y];
-      else if ( y = left[p[y]] ) left[p[y]] = left[y];
-      else right[p[y]] = left[y];
+      set_parent_child( y, left[y] );
     } else {
-      p[right[y]] = p[y];
-      if ( p[y] == -1 ) root = right[y];
-      else if ( y = left[p[y]] ) left[p[y]] = right[y];
-      else right[p[y]] = right[y];
+      set_parent_child( y, right[y] );
     }
     free_node( y );
   }
+
 
   if( color[y] == 0 ) 
     fix_remove(y);
@@ -211,15 +222,21 @@ int remove(int k) {
 
 int main() {
 	init();
-	REP(i, 100) {
+	REP(i, 8) {
 		printf("insert %d\n", i);
 		insert(i);
 	}
 	printf("%d\n", n);
 
+
 	printf("root = %d\n", root);
 	print( root );
 	puts("");
 
+  REP(i, 8) {
+    if ( i & 1 ) remove( i );
+  }
+  print( root );
+  puts( "" );
 	return 0;
 }
