@@ -26,7 +26,7 @@ struct P {
 	double x, y;
 	P() {}
 	P( double x, double y ): x(x), y(y) {}
-	int eat() { return scanf( "%lf%lf", &x, &y ); }
+	void eat() { scanf( "%lf%lf", &x, &y ); }
 	void out() { printf( "(%f, %f)", x, y ); }
 
 	P operator+( P p ) { return P( x + p.x, y + p.y ); }
@@ -34,6 +34,8 @@ struct P {
 	P operator*( double s ) { return P( x * s, y * s ); }
 	double operator*( P p ) { return x * p.x + y * p.y; }
 	double operator^( P p ) { return x * p.y - y * p.x; }
+  bool operator<( const P p ) const { return x != p.x ? x < p.x : y < p.y; }
+  bool operator==( const P p ) const { return feq( x, p.x ) && feq( y, p.y ); }
 
 	double mag() { return sqrt( x * x + y * y ); }
 	double mag2() { return x * x + y * y; }
@@ -49,78 +51,38 @@ double area(P a, P b, P c) {
 	return 0.5 * ( ( b - a ) ^ ( c - a ) );
 }
 
-bool ccw(P a, P b, P c) {
-  return area(a, b, c) > EPS;
+bool ccw( P a, P b, P c ) {
+  return fge( area( a, b, c ), 0.0 );
+}
+
+bool Ccw( P a, P b, P c ) {
+  return fgt( area( a, b, c ), 0.0 );
 }
 
 bool btw( P a, P b, P c ) {
 	return feq( ( b - a ).mag() + ( c - b ).mag(), ( a - c ).mag() );
 }
 
+#define N 11111
 
-bool lli( P a, P b, P c, P d, P &res ) {
-//  printf("lli ");
-//  a.out(), b.out(), c.out(), d.out();
-//  puts("");
-	if( feq( ( b - a ) ^ ( d - c ), 0.0 ) ) return false;
-	res = a + ( b - a ) * ( area( c, d, a )  / ( area( c, d, a ) - area(c, d, b) ) );
-	return true;
-}
-
-bool ssi(P a, P b, P c, P d, P &res) {
-  if( !lli(a, b, c, d, res) ) {
-    return false;
-  } else {
-    if( btw(a, res, b) && btw(c, res, d) ) {
-      return true;
-    } else {
-      return false;
-    }
+double fpair(P p[], int n, P &a, P &b) {
+  double fd = -1;
+  P ch[N];
+  int hn = 0;
+  // compute convex hull
+  REP(i, n) {
+    while( hn >= 2 && !ccw( ch[hn - 2], ch[hn - 1], p[i]) ) 
+      hn--;
+    ch[hn++] = p[i];
   }
-}
 
-bool lsi(P a, P b, P c, P d, P &res){
-  if(!lli(a, b, c, d, res)) {
-    return false;
-  } else {
-    if( btw(c, res, d) ) {
-      return true;
-    } else {
-      return false;
-    }
+  for(int i = n - 1, _s = hn; i >= 0; i--) {
+    while( hn >= 2 && hn >= _s && !ccw(ch[hn - 2], ch[hn - 1], p[i])) 
+      hn--;
+    ch[hn++] = p[i];
   }
-}
 
-#define N 5000
-
-P res[N];
-int sz;
-
-void init() {
-  res[0] = P(-10000, -10000);
-  res[1] = P(10000, -10000);
-  res[2] = P(10000, 10000);
-  res[3] = P(-10000, 10000);
-  sz = 4;
-}
-
-void hpi(P a, P b) {
-   int _sz = 0;
-   P cur[N], e;
-
-   REP(i, sz) {
-     if( ccw(a, b, res[i]) ) {
-       cur[_sz++] = res[i];
-     }
-     if( lsi(a, b, res[i], res[(i+1)%sz], e) ) {
-       cur[_sz++] = e;
-     } 
-   }
-
-   REP(i, _sz) {
-     res[i] = cur[i];
-   }
-   sz = _sz;
+  
 }
 
 int main() {
