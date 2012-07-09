@@ -74,12 +74,6 @@ bool up( P a ) {
   return a.y == 0.0 ? a.x > 0.0 : a.y > 0;
 }
 
-/**
-  * O(nlogn) half plane intersection
-  * zzy's method
-  *   sweep one round, no merge convex hull
-  **/
-
 #define N 11111
 
 P hp[N][2], res[N];
