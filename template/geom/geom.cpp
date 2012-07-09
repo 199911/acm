@@ -63,6 +63,10 @@ bool btw( P a, P b, P c ) {
 	return feq( ( b - a ).mag() + ( c - b ).mag(), ( a - c ).mag() );
 }
 
+bool up( P a ) {
+  return a.y == 0 ? a.x > 0 : a.y > 0;
+}
+
 int main() {
 	return 0;
 }
