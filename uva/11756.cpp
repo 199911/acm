@@ -15,7 +15,7 @@ using namespace std;
 #define REP(i,n) FOR(i,0,n)
 #define FOE(i,a,b) for(int i = (a); i <= (b); i++)
 
-#define INF 1e9
+#define INF 1e12
 #define EPS 1e-9
 #define feq(a,b) (fabs((a)-(b))<EPS)
 #define fgt(a,b) ((a)>(b)+EPS)
@@ -75,6 +75,7 @@ bool up( P a ) {
 }
 
 double parea( P p[], int n ) {
+  if( n < 3 ) return 0.0;
   double ret = 0.0;
   REP(i, n) ret += area( P(0.0, 0.0), p[i], p[(i + 1) % n]);
   return fabs( ret );
@@ -118,7 +119,6 @@ void hpi() {
   pqh = pqt = 0;
 
   REP(i, hn){
-    // paralell half plane
 #ifdef DEBUG
     printf("%d:\n", i);
     printf("[%d, %d]\n", qh, qt);
@@ -126,14 +126,29 @@ void hpi() {
       printf("%d ", q[x]);
     }
     puts( "" );
+    FOR(x, pqh, pqt) {
+      pq[x].out();
+    }
+    puts( "" );
 #endif
+    // paralell half plane
     if ( qt - qh >= 1 && feq( ( hp[a[i]][1] - hp[a[i]][0] ) ^ ( hp[q[qt-1]][1] - hp[q[qt-1]][0]), 0.0 ) ) continue;
     // already satisfied
     if ( fl == 1 && ccw( hp[a[i]][0], hp[a[i]][1], lt) ) {
+#ifdef DEBUG
+      lt.out();
+      puts( "oops" );
+#endif
       continue; 
     }
+    // find the two (one) edge(s) that intersects the halfplane
     while( qt - qh >= 2 && !Ccw( hp[a[i]][0], hp[a[i]][1], pq[pqt-1])) qt--, pqt--;
-    while( fl && qt - qh >= 2 && !Ccw( hp[a[i]][0], hp[a[i]][1], pq[pqh])) {
+    if( qt - qh == 1 && fl ) {
+      // no feasible solution
+      rn = 0;
+      return;
+    }
+    while( qt - qh >= 2 && !Ccw( hp[a[i]][0], hp[a[i]][1], pq[pqh])) {
       pqh++, qh++; 
       lli( hp[a[i]][0], hp[a[i]][1], hp[q[qh]][0], hp[q[qh]][1], lt);
     }
@@ -178,6 +193,11 @@ int main() {
     }
     scanf( "%lf%lf", &xl, &xr );
 
+    if ( fge( xl, xr ) ) {
+      printf( "%f\n", 0.0 );
+      continue;
+    }
+
     n = cnt;
 
     ll[0] = P( xl, 0.0 );
@@ -191,8 +211,8 @@ int main() {
       hp[i][0] = ln[i][0];
       hp[i][1] = ln[i][1];
       P t1, t2;
-      lli(hp[i][0], hp[i][1], ll[0], ll[1], t1);
-      lli(hp[i][0], hp[i][1], rl[0], rl[1], t2);
+      if ( ! lli(hp[i][0], hp[i][1], ll[0], ll[1], t1) ) while( 1 );
+      if ( ! lli(hp[i][0], hp[i][1], rl[0], rl[1], t2) ) while( 1 );
       /*
       printf("t! ");
       t1.out(); t2.out();
@@ -202,15 +222,19 @@ int main() {
       yb = min(yb, min(t1.y, t2.y));
       if( fgt(hp[i][0].x, hp[i][1].x) ) swap(hp[i][0], hp[i][1]);
     }
-    hn = n + 3;
+
+    hn = n + 4;
     hp[n][0] = P( xr, yt );
     hp[n][1] = P( xl, yt );
 
-    hp[n+1][0] = rl[0];
-    hp[n+1][1] = rl[1];
+    hp[n+1][0] = P( xl, yb );
+    hp[n+1][1] = P( xr, yb );
 
-    hp[n+2][0] = ll[1];
-    hp[n+2][1] = ll[0];
+    hp[n+2][0] = rl[0];
+    hp[n+2][1] = rl[1];
+
+    hp[n+3][0] = ll[1];
+    hp[n+3][1] = ll[0];
 
     hpi();
 
@@ -223,23 +247,20 @@ int main() {
 #endif
 
     ta = parea( res, rn );
+#ifdef DEBUG
+    printf( "ta = %lf\n", ta );
+#endif
 
     // lower part
     REP(i, n) 
       swap(hp[i][0], hp[i][1]);
 
-    hp[n][0] = P( xl, yb );
-    hp[n][1] = P( xr, yb );
-
-    hp[n+1][0] = rl[0];
-    hp[n+1][1] = rl[1];
-
-    hp[n+2][0] = ll[1];
-    hp[n+2][1] = ll[0];
-
     hpi();
 
     ba = parea( res, rn );
+#ifdef DEBUG
+    printf( "ba = %lf\n", ba );
+#endif
 
 #ifdef DEBUG
     printf("rn = %d\n", rn);
