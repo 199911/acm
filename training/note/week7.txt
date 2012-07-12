@@ -96,6 +96,10 @@ Details:
     * UVA 10054
     * UVA 302
 
+	1.7 Reference
+		wikipedia: http://en.wikipedia.org/wiki/Eulerian_path
+		http://www.csie.ntnu.edu.tw/~u91029/Circuit.html
+
 
 2 Bipartite Matching
   2.1 Definition
@@ -188,10 +192,56 @@ Details:
     UVA 753 http://uva.onlinejudge.org/external/7/753.html
     UVA 10092 http://uva.onlinejudge.org/external/100/10092.html
 
+	2.5 Reference:
+		http://www.csie.ntnu.edu.tw/~u91029/Matching.html
+		www-math.mit.edu/~goemans/.../matching-notes.pdf
+		http://en.wikipedia.org/wiki/Matching_%28graph_theory%29
+
 3. Maximum Flow
   
   3.1 Motivation
-    The problem was motivated from a very simple setting. Suppose we have a bunch of water pipe with different capacity, connected by junctions.
+    The problem was motivated from a very simple setting. Suppose we have a bunch of water pipe with different capacity, connected by junctions. Given a source and a sink, how much water per second we can send from the source to the sink?
 
+  3.2 Definition
+		A flow network is a 4-tuples (G, c, s, t), where G is an undirected graph, c:E -> R+ is a capacity function for set of edges. s and t is two distinct vertices from G where s is the source and t is the sink.
+		Moreover, we make the restriction that one of c(u, v) or c(v, u) must be zero.
+
+		A flow function for a flow network is a function f:E->R satisfying the following proporties:
+			(1) flow Conservation: 
+				For all x \in V - {s, t}
+				\sum_{ (y, x) \in E } f(y, x) = \sum_{ (x, y) \in E } f(x, y)
+			(2) skew symmetric 
+				f(x, y) = -f(y, x)
+			(3) capacity constraint
+				f(x, y) <= c(x, y)
+
+		It's not difficult to prove that the total flow going out of s, denoted by f(s, V), equals the total flow going inside the sink, denoted by f(V, t). (details in CLRS)
+
+		Then the MAXIMUM FLOW problem asks you to maximize the total amount of flow going from s to t.
+
+	3.3 Augmenting Path Approach. 
+		Similar to maximum matching problem, we can solve MAXIMUM FLOW problem using the augmenting path approach. We given a flow network (G = (V, E), c, s, t) and a flow f, we define the following
+		
+		The Residue Network (G, c', s, t) w.r.t. f is defined as 
+			c'(u, v) = c(u, v) - f(u, v).
+
+		Then an augmenting path is a path with nonzero capacity in the residue network going from s to t. To visuallize the definition, we can think of how we can increase our flow f. We can either push some flow towards (u, v) if the edges is not saturated, or we can push some flow backwards, (v, u), to cancel out some original flow in (u, v). The capacity is c(u, v) - f(u, v), and f(u, v) = -f(v, u) respectively.
+
+		Then The Augmenting Path Theorem state that
+			A flow f is maximum if and only if there is no s-t augmenting path in the residue network w.r.t. f. 
+
+		The proof of the theorem can be seen in CLRS.
+
+	3.4 Algorithm
+		Then we have a very simple algorithm for solving MAXIMUM FLOW problem:
+		----------------------------------------------
+			while( there is an augmenting path in the residue network )
+				augment the flow from the augmenting path by c where c is the minimum capacity of the path
+		----------------------------------------------
+
+	3.5 C++ Implementation
+		the C++ implementation uses a nice trick that is often used in undirected graph, i.e. for every edges, (u, v), we would like to efficiently O(1) find the edge (v, u). While this is trivial if we use adjacency matrix, finding the reversed edges can be trickly if we just we adjacency list.
+
+		The idea of this trick is to allocate the space for (u, v) and (v, u) consecutively, so if e is pointing to (u, v), e^1 will be pointing to (v, u).
 
 
