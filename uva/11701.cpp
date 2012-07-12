@@ -59,5 +59,25 @@ struct Frac {
 };
 
 int main() {
+  char in[100];
+  while( scanf( "%s", in ), in[0] != 'E' ) {
+    Frac x, a = Frac(1, 3), b = Frac(2, 3), c = Frac(1, 1), d = Frac(0, 1);
+    x.eat( in );
+    set<Frac> st;
+    int ok = 1;
+
+    while( x != c && x != d ) {
+      if( st.find(x) != st.end() ) break; 
+      st.insert(x);
+      if( x >= a && x < b ) {
+        ok = 0; break;
+      } else if ( x >= b ) {
+        x = x - b;
+      }
+      x = x * 3;
+    }
+
+    printf("%sMEMBER\n", ok ? "" : "NON-");
+  }
 	return 0;
 }

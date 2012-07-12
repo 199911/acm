@@ -1,0 +1,197 @@
+CUHK ACM SUMMER TRAINING 2012
+Week 7 
+
+Speaker: Lapchi
+Scribe: David
+
+Topics:
+1. Eulerian Cycle/Path
+2. Bipartite Matching and Application
+3. Maximum Flow 
+
+Details:
+
+1. Eulerian Cycle/Path
+  1.1. Definition:
+    Given an undericted graph G, an Eulerian Cycle C on G is a cycle that traverse each edges exactly once. A graph that has a Eulerian Cycle is called Eulerian Graph.
+
+  1.2 How to Determine if a graph is Eulerian?
+    A undirected graph is an Eulerian graph if and only if:
+      (1) every vertices has even degree.
+      (2) it has only one connected component that has more than one vertices.
+
+    Remark: 
+      An Eulerian graph can be disconnected if those "disconnected components" are just isolated points.
+
+  1.3 How to find an Eulerian Cycle.
+    Eulerian Cycle problem is solvable in linear time. The algorithm is due to Hierholzer in 1873. 
+      (1) Choose any starting vertex v, and follow a trail of edges from that vertex until returning to v. It is not possible to get stuck at any vertex other than v, because the even degree of all vertices ensures that, when the trail enters another vertex w there must be an unused edge leaving w. The tour formed in this way is a closed tour, but may not cover all the vertices and edges of the initial graph.
+      (2) As long as there exists a vertex u that belongs to the current tour but that has adjacent edges not part of the tour, start another trail from v, following unused edges until returning to v, and join the tour formed in this way to the previous tour.
+
+    How to choose the vertices u and the untraversed edges adjacent to v can determine the property of the resultant path. If we choose the last vertices along the cycle from v, and choose the smallest indexed untraversed vertices from u, the resultant path will be lexicographically smallest (in terms of vertices). 
+
+  1.4 Implementation:
+    We can implement Lex-Smallest Euler Path in linear time using DFS. It's a nice exercies to reason why the implementation is correct. 
+
+    ---------------------------------------------
+    // find the lex smallest (in terms of vertices) euler cycle
+
+    #define N 111
+    #define M 111111
+
+    // graph in adj list
+    int adj[N][N], cur[N], n, m;
+    int hd, nt[M], vtx[M], cnt;
+
+    void init() {
+      memset(adj, 0, sizeof(adj));
+      memset(cur, 0, sizeof(cur));
+      hd = -1;
+      memset(nt, -1, sizeof(nt));
+      cnt = 0;
+    }
+
+    void push( int x ) {
+      nt[cnt] = hd;
+      vtx[cnt] = x;
+      hd = cnt++;
+    }
+
+    void dfs(int x) {
+      for (int &v = cur[x]; v < n; v++) {
+        if ( adj[x][v] > 0 ) {
+          adj[x][v]--;
+          if ( x != v ) adj[v][x]--;
+          dfs( v );
+          push( x );
+        }
+      }
+    }
+
+    int main() {
+      scanf( "%d%d", &n, &m );
+      init();
+      REP(i, m) {
+        int a, b;
+        scanf( "%d%d", &a, &b );
+        adj[a][b] = adj[b][a] = 1;
+      }
+      push(0);
+      dfs(0);
+      for( int e = hd; e != -1; e = nt[e] ) printf( "%d\n", vtx[e] );
+      return 0;
+    }
+    ---------------------------------------------
+
+    The running time for the above implementation is O(V^2 + E), while an implementation using adjacency list can make the running time O(V+E).
+
+
+  1.5 Directed Eulerian Cycle. 
+
+    A directed graph have an Eulerian Cycle if an only if the in degree is equal to the out degree for all vertices and at most one strongly connected component has more than one vertex.
+
+    The adaptation of above algorithm is left as an exercise.
+
+  1.6 Homework:
+    * UVA 10054
+    * UVA 302
+
+
+2 Bipartite Matching
+  2.1 Definition
+    A graph G = (V, E) is bipartite if we can partition the set V into two disjoint subset A \union B such that every edge has exactly one end point in A and one end point in B. 
+    Given an undirected graph G = ( V, E ), a matching M is a subset of E such that each vertex in V is adjacent to at most one edges in M.
+
+    The Maximum Bipartite Matching problem is stated as, given an undirected bipartite graph G, find a matching of maximum size. 
+
+  2.2 Approach
+    2.2.1 Some New Definition
+      (1) Exposed Vertex: 
+        Given a matching M, an exposed vertex v w.r.t. M is a vertex that is not matched in M. 
+      (2) Residue Graph: 
+        Given an undirected bipartite graph G = ( A + B, E ), and a matching M on G, the resiude graph of G, says G' w.r.t. M is the directed graph on the same set of vertices with edges of the following:
+          * ( a, b ) for a \in A and b \in B and (a, b) \not\in M.
+          * ( x, y ) for x \in B and y \in A and (x, y) \in M.
+      (3) Augmenting Path.
+        An augmenting path on G' is the path from an exposed vertex in A to an exposed vertex in B.
+
+    2.2.2 Observations:
+      Observation 1:
+        If G' contain some augmenting path P, the M is not optimal and we can augment matching M by 1 by letting M = ( M - P ) + ( P - M ) (a.k.a taking the symmetric difference of P and M) (a.k.a taking the edges in M but not in P union with the edges in P but not in M).
+
+      Proof is left as an exercise.
+
+      Observation 2: 
+        Given two matching M and M' with |M| < |M'| on G, there exists an augmenting path w.r.t. M in G'.
+
+      Prooof:
+        We construct the graph with vertex set V and edges set (M - M) + (M' - M). We orient the edges from M going from B to A and the edges from M' going from A to B (as in residue graph). Then since |M-M'| < |M'-M|, and every path from an exposed vertices from A to a matched vertices in A takes up some number of edges in M as in M', there must be a path from an exposed vertex in A to an exposed vertex in B, which is an augmenting path.
+
+    2.2.3 Solution:
+      The above observation yields a simple algorithm for the problem:
+    -------------------------------------------------------------------
+        while( there is still an augmenting path in the residue graph )
+          augment the matching by 1 from the augmenting path;
+    -------------------------------------------------------------------
+
+    2.2.4 Implementation
+      -------------------------------------------------------------------
+      #define N 222
+
+      int adj[N][N], na, nb, m;
+
+      int ma[N], mb[N], va[N], vb[N];
+
+      void init() {
+        memset(adj, 0, sizeof(adj));
+        m = na = nb = 0;
+        memset(ma, -1, sizeof(ma));
+        memset(mb, -1, sizeof(mb));
+      }
+
+      int path(int x) {
+        va[x] = 1;
+        for(int y = 0; y < nb; y++) {
+          if( adj[x][y] && !vb[y] ) {
+            vb[y] = 1;
+            if( mb[y] == -1 || path(mb[y]) ) {
+              ma[x] = y; mb[y] = x; 
+              return 1;
+            }
+          }
+        }
+        return 0;
+      }
+
+      int bmatch() {
+        int cnt = 0;
+        REP(x, na) {
+          memset(va, 0, sizeof(va));
+          memset(vb, 0, sizeof(vb));
+          cnt += path(x);
+        }
+        return cnt;
+      }
+      -------------------------------------------------------------------
+
+  2.3 Application
+    (1) Tile Covering
+      Given a grid [1, n] * [1, m], with some sqare (x, y) broken, is it possible to tile up all the remaining grid with a 1 * 2 tile?
+
+    (2) Graph Orientation
+      Given an undirected graph G, and an orientation of a subset of edges, is it possible to orient the remaining edges such that the resultant graph has a directed Eulerian cycle.
+
+    (3) Cycle Cover
+      Given an directed graph, is it possible to cover the graph with edge disjoint directed cycle?
+
+  2.4 Homework
+    UVA 753 http://uva.onlinejudge.org/external/7/753.html
+    UVA 10092 http://uva.onlinejudge.org/external/100/10092.html
+
+3. Maximum Flow
+  
+  3.1 Motivation
+    The problem was motivated from a very simple setting. Suppose we have a bunch of water pipe with different capacity, connected by junctions.
+
+
+

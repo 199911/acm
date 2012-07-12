@@ -93,34 +93,38 @@ bool comp( const int &a, const int &b ) {
 }
 
 void hpi() {
-  int a[N], q[N], qh, qt, pqh, pqt, fl = 0;
-  P pq[N], lt;
-  REP(i, hn) a[i] = i;
+  int A[N], q[N], qh, qt;
+  P u[N], t;
 
-  sort(a, a + hn, comp);
+  qh = qt = 0;
+  REP(i, hn) A[i] = i;
+  sort(A, A + hn, comp);
 
-  rn = qh = qt = 0;
-  pqh = pqt = 0;
-
-  REP(i, hn){
-    if ( qt - qh >= 1 && feq( ( hp[a[i]][1] - hp[a[i]][0] ) ^ ( hp[q[qt-1]][1] - hp[q[qt-1]][0]), 0.0 ) ) continue;
-    if ( fl == 1 && ccw( hp[a[i]][0], hp[a[i]][1], lt) ) continue; 
-    while( qt - qh >= 2 && !ccw( hp[a[i]][0], hp[a[i]][1], pq[pqt-1])) qt--, pqt--;
-    while( qt - qh >= 2 && !ccw( hp[a[i]][0], hp[a[i]][1], pq[pqh])) pqh++, qh++; 
-    q[qt++] = a[i];
-    if( qt - qh >= 2 ) lli( hp[q[qt-1]][0], hp[q[qt-1]][1], hp[q[qt-2]][0], hp[q[qt-2]][1], pq[pqt++]);
-    if ( qh != qt && ( ( ( hp[q[qh]][1] - hp[q[qh]][0] ) ^ (hp[a[i]][1] - hp[a[i]][0]) ) < - EPS ) ) {
-      fl = 1;
-      lli(hp[q[qh]][0], hp[q[qh]][1], hp[a[i]][0], hp[a[i]][1], lt);
+  REP(i, hn) {
+    if ( qt == 0 ) {
+      q[qt++] = A[i];
+    } else {
+      P ai = hp[A[i]][1] - hp[A[i]][0], ql = hp[q[qt-1]][1] - hp[q[qt-1]][0];
+      if ( feq( ai ^ ql, 0.0 ) && ai * ql > EPS ) continue;
+      while( qt - qh >= 2 && !Ccw( hp[A[i]][0], hp[A[i]][1], u[qt-2]) ) qt--;
+      q[qt++] = A[i];
+      lli(hp[q[qt-2]][0], hp[q[qt-2]][1], hp[q[qt-1]][0], hp[q[qt-1]][1], u[qt-2]); 
     }
   }
 
-  rn = 0;
-  res[rn++] = lt;
-  FOR(i, pqh, pqt) {
-    res[rn++] = pq[i];
+  bool f = 1;
+  while( f ) {
+    f = 0;
+    while( qt - qh >= 2 && !Ccw( hp[q[qh]][0], hp[q[qh]][1], u[qt-2]) ) f = 1, qt--;
+    while( qt - qh >= 2 && !Ccw( hp[q[qt-1]][0], hp[q[qt-1]][1], u[qh]) ) f = 1, qh++;
   }
 
+  rn = 0;
+  int k = qt - qh;
+  REP(i, k) {
+    lli( hp[q[qh+i]][1], hp[q[qh+i]][0], hp[q[qh+(i+1)%k]][1], hp[q[qh+(i+1)%k]][0], t);
+    res[rn++] = t;
+  }
 }
 
 int main() {
