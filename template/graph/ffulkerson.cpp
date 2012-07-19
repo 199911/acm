@@ -41,7 +41,7 @@ int dfs(int u, int fl) {
 	if( u == t ) return fl;
 	for(int e = hd[e]; e != -1; e = nt[e]) {
 		int af;
-		if( ca[e] && !vis[to[e]] && (af = dfs(to[e], min(fl, ca[e]))));
+		if( ca[e] && !vis[to[e]] && (af = dfs(to[e], min(fl, ca[e])))) {
 			ca[e] -= af;
 			ca[e^1] += af;
 			return af;

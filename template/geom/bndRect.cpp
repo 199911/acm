@@ -70,74 +70,32 @@ bool up( P a ) {
 
 // Given a convex polygon, find the area of its smallest bounding rectangle
 
-double rectA(P a, P b, P c, P d, P e) {
-	double h = ((b - a) ^ (d - a))/(b - a).mag();
-	double w1 = ((b - a) * (c - a))/(b - a).mag();
-	double w2 = ((b - a) * (e - a))/(b - a).mag();
-	return fabs(h * (w1 - w2));
+void rect(P a, P b, P c, P d, P e, double &ar, double &peri) {
+  double l = (b - a).mag2();
+  double h = ((b - a) ^ (d - a));
+  double w1 = ((b - a) * (c - a));
+  double w2 = ((b - a) * (e - a));
+  double w = w1 - w2;
+  peri = ( w + h ) * 2 / sqrt(l);
+  ar = fabs(h * (w1 - w2)) / l;
 }
 
-double bndRect(P p[], int n) {
-	int sl = -1;
-	double minDot = INF;
-	REP(i, n) {
-		double cur = (p[1] - p[0]) * (p[i] - p[0]);
-		if ( cur < minDot ) {
-			minDot = cur;
-			sl = i;
-		}
-	}
+void bndRect(P p[], int n, double &mar, double &mpr) {
+  mpr = mar = INF;
+  for(int i = 0, j = 1, k = 1, l = 1; i < n; i++) {
+    while( fgt((p[i + 1] - p[i]) * (p[j + 1] - p[i]), (p[i + 1] - p[i]) * (p[j] - p[i])) ) j = (j + 1) % n;
+    while( fgt((p[i + 1] - p[i]) ^ (p[k + 1] - p[i]), (p[i + 1] - p[i]) ^ (p[k] - p[i])) ) k = (k + 1) % n;
+    if ( i == 0 ) l = j;
+    while( fle((p[i + 1] - p[i]) * (p[l + 1] - p[i]), (p[i + 1] - p[i]) * (p[l] - p[i])) ) l = (l + 1) % n;
 
-	double minA = INF;
-	for(int i = 0, j = 1, k = 1, l = sl; i < n; i++) {
-		// update right pointer j
-		double last = -INF;
-		int up = 0;
+    double pr, ar;
+    rect(p[i], p[i + 1], p[j], p[k], p[l], ar, pr);
 
-		while(true) {
-			double cur = (p[(i+1)%n] - p[i]) * (p[j%n] - p[i]);
-			if ( cur < last + EPS) break;
-			last = cur;
-			j++; up = 1;
-		}
-		if ( up ) j--;
-
-		// update up pointer k
-		last = -INF; up = 0;
-		while(true) {
-			double cur = (p[(i+1)%n] - p[i]) ^ (p[k%n] - p[i]);
-			if ( cur < last + EPS ) break;
-			last = cur;
-			k++; up = 1;
-		}
-		if ( up ) k--;
-
-		// update left pointer l
-		last = INF; up = 0;
-		while(true) {
-			double cur = (p[(i+1)%n] - p[i]) * (p[l%n] - p[i]);
-			if ( cur > last - EPS) break;
-			last = cur;
-			l++; up = 1;
-		}
-		if ( up ) l--;
-
-		double ra = rectA(p[i], p[(i+1)%n], p[j%n], p[k%n], p[l%n]);
-		minA = min(minA, ra);
-	}
-	return minA;
+    mar = min(ar, mar);
+    mpr = min(pr, mpr);
+  }
 }
-
-#define N 111111
-
-int n;
-P p[N];
 
 int main() {
-	scanf("%d", &n);
-	REP(i, n) p[i].eat();
-
-	double ans = bndRect(p, n);
-	printf("%lf\n", ans);
-	return 0;
+  return 0;
 }

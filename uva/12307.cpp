@@ -15,7 +15,7 @@ using namespace std;
 #define REP(i,n) FOR(i,0,n)
 #define FOE(i,a,b) for(int i = (a); i <= (b); i++)
 
-#define EPS 1e-6
+#define EPS 1e-9
 #define INF 1e20
 #define feq(a,b) (fabs((a)-(b))<EPS)
 #define fgt(a,b) ((a)>(b)+EPS)
@@ -30,11 +30,11 @@ struct P {
   void eat() { scanf( "%lf%lf", &x, &y ); }
   void out() { printf( "(%f, %f)", x, y ); }
 
-  P operator+( const P p ) const { return P( x + p.x, y + p.y ); }
-  P operator-( const P p ) const { return P( x - p.x, y - p.y ); }
-  P operator*( double s ) const { return P( x * s, y * s ); }
-  double operator*( const P p ) { return x * p.x + y * p.y; }
-  double operator^( const P p ) { return x * p.y - y * p.x; }
+  P operator+( P p ) { return P( x + p.x, y + p.y ); }
+  P operator-( P p ) { return P( x - p.x, y - p.y ); }
+  P operator*( double s ) { return P( x * s, y * s ); }
+  double operator*( P p ) { return x * p.x + y * p.y; }
+  double operator^( P p ) { return x * p.y - y * p.x; }
   bool operator<( const P p ) const { return !feq(x, p.x) ? x < p.x : y < p.y; }
   bool operator==( const P p ) const { return feq( x, p.x ) && feq( y, p.y ); }
 
@@ -53,11 +53,11 @@ double area(P a, P b, P c) {
 }
 
 bool ccw( P a, P b, P c ) {
-  return fge( ((b - a) ^ (c - a)), 0.0 );
+  return fge( ( b - a ) ^ ( c - a ), 0.0 );
 }
 
 bool Ccw( P a, P b, P c ) {
-  return fgt( ((b - a) ^ (c - a)), 0.0 );
+  return fgt( (b - a) ^ (c - a), 0.0 );
 }
 
 bool btw( P a, P b, P c ) {
@@ -69,42 +69,36 @@ bool up( P a ) {
 }
 
 // Given a convex polygon, find the area of its smallest bounding rectangle
-P piv;
 
-bool comp( const P &a, const P &b ) {
-  return Ccw( piv, a, b ) || ccw(piv, a, b) && flt((a - piv).mag2(), (b - piv).mag2());
+void rect(P a, P b, P c, P d, P e, double &ar, double &peri) {
+  double l = (b - a).mag2();
+  double h = ((b - a) ^ (d - a));
+  double w1 = ((b - a) * (c - a));
+  double w2 = ((b - a) * (e - a));
+  double w = w1 - w2;
+  peri = ( w + h ) * 2 / sqrt(l);
+  ar = fabs(h * (w1 - w2)) / l;
 }
 
-void graham(P p[], int n, P h[], int &hn) {
-  piv = P(1e99, 1e99);
-  REP(i, n) {
-    if ( p[i].y < piv.y || p[i].y == piv.y && p[i].x < piv.x) {
-      piv = p[i];
-    }
-  }
-  sort(p, p + n, comp);
-  n = unique(p, p + n) - p;
+void bndRect(P p[], int n, double &mar, double &mpr) {
+  mar = INF;
+  mpr = INF;
+  for(int i = 0, j = 1, k = 1, l = 1; i < n; i++) {
+    while( fgt((p[i + 1] - p[i]) * (p[j + 1] - p[i]), (p[i + 1] - p[i]) * (p[j] - p[i])) ) j = (j + 1) % n;
+    while( fgt((p[i + 1] - p[i]) ^ (p[k + 1] - p[i]), (p[i + 1] - p[i]) ^ (p[k] - p[i])) ) k = (k + 1) % n;
+    if ( i == 0 ) l = j;
+    while( fle((p[i + 1] - p[i]) * (p[l + 1] - p[i]), (p[i + 1] - p[i]) * (p[l] - p[i])) ) l = (l + 1) % n;
 
-  if ( n <= 1 ) {
-    hn = n;
-    if( n ) h[0] = p[0];
-    return;
-  } else if ( area( p[0], p[1], p[n-1]) < EPS ) {
-    h[0] = p[0];
-    h[1] = p[n-1];
-    hn = 2;
-    return;
-  }
+    double pr, ar;
+    rect(p[i], p[i + 1], p[j], p[k], p[l], ar, pr);
 
-  hn = 0;
-  REP(i, n) {
-    while( hn >= 2 && !Ccw(h[hn-2], h[hn-1], p[i])) hn--;
-    h[hn++] = p[i];
+    mar = min(ar, mar);
+    mpr = min(pr, mpr);
+    
   }
 }
 
-
-void hull(P p[], int &n, P ch[], int &hn){
+int hull(P p[], int n, P ch[], int &hn){
   sort(p, p + n);
   hn = 0;
   for(int i = 0; i < n; i++) {
@@ -118,52 +112,24 @@ void hull(P p[], int &n, P ch[], int &hn){
   hn--;
 }
 
-#define N 1111
+#define N 111111
 
+int n, hn;
+P p[N], h[N];
 
 int main() {
-
-  int n;
   while(scanf("%d", &n), n) {
-    P p[N], h[N];
-    int hn;
-
     REP(i, n) p[i].eat();
     hull(p, n, h, hn);
 
-    if( hn < 3 ) {
-      puts("0.0000");
+    if ( hn < 3 ) {
+      puts( "0.0000" );
       continue;
     }
 
-    double res = 1e10;
-
-    for(int i = 0; i < hn; i++) {
-      P a = h[i], b = h[i+1];
-      P hr = b - a;
-      P vt = hr.rot();
-      double d = (b - a).mag();
-      double he = -EPS, w1 = -1e10, w2 = 1e10;
-
-      REP(j, hn) {
-        P c = h[j];
-
-        double x = fabs((hr ^ (c - a)) / d);
-        if ( x > he ) he = x;
-
-        x = (vt ^ c) / d; 
-        if ( x > w1 ) w1 = x;
-        if ( x < w2 ) w2 = x;
-
-      }
-
-      double w = w1 - w2;
-      double cur = he * w;
-      if ( cur < res ) res = cur;
-    }
-
-    printf("%.4f\n", res);
+    double ar, pr;
+    bndRect(h, hn, ar, pr);
+    printf("%.2f %.2f\n", ar, pr);
   }
-
   return 0;
 }

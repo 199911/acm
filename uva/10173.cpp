@@ -24,139 +24,112 @@ using namespace std;
 #define fle(a,b) ((a)<(b)+EPS)
 
 struct P {
-	double x, y;
-	P() {}
-	P( double x, double y ): x(x), y(y) {}
-	void eat() { scanf( "%lf%lf", &x, &y ); }
-	void out() { printf( "(%f, %f)", x, y ); }
+  double x, y;
+  P() {}
+  P( double x, double y ): x(x), y(y) {}
+  void eat() { scanf( "%lf%lf", &x, &y ); }
+  void out() { printf( "(%f, %f)", x, y ); }
 
-	P operator+( P p ) { return P( x + p.x, y + p.y ); }
-	P operator-( P p ) { return P( x - p.x, y - p.y ); }
-	P operator*( double s ) { return P( x * s, y * s ); }
-	double operator*( P p ) { return x * p.x + y * p.y; }
-	double operator^( P p ) { return x * p.y - y * p.x; }
-	bool operator<( const P p ) const { return x != p.x ? x < p.x : y < p.y; }
-	bool operator==( const P p ) const { return feq( x, p.x ) && feq( y, p.y ); }
+  P operator+( P p ) { return P( x + p.x, y + p.y ); }
+  P operator-( P p ) { return P( x - p.x, y - p.y ); }
+  P operator*( double s ) { return P( x * s, y * s ); }
+  double operator*( P p ) { return x * p.x + y * p.y; }
+  double operator^( P p ) { return x * p.y - y * p.x; }
+  bool operator<( const P p ) const { return !feq(x, p.x) ? x < p.x : y < p.y; }
+  bool operator==( const P p ) const { return feq( x, p.x ) && feq( y, p.y ); }
 
-	double mag() { return sqrt( x * x + y * y ); }
-	double mag2() { return x * x + y * y; }
+  double mag() { return sqrt( x * x + y * y ); }
+  double mag2() { return x * x + y * y; }
 
-	P nor() { return * this * ( 1.0 / mag() ); }
+  P nor() { return * this * ( 1.0 / mag() ); }
 
-	P rot() { return P( -y, x ); }
-	P rot( double si, double co ) { return P( x * co - y * si, x * si + y * co ); }
-	P rot( double th ) { return rot( sin( th ), cos( th ) ); }
+  P rot() { return P( -y, x ); }
+  P rot( double si, double co ) { return P( x * co - y * si, x * si + y * co ); }
+  P rot( double th ) { return rot( sin( th ), cos( th ) ); }
 };
 
 double area(P a, P b, P c) {
-	return 0.5 * ( ( b - a ) ^ ( c - a ) );
+  return 0.5 * ( ( b - a ) ^ ( c - a ) );
 }
 
 bool ccw( P a, P b, P c ) {
-	return fge( area( a, b, c ), 0.0 );
+  return fge( ( b - a ) ^ ( c - a ), 0.0 );
 }
 
 bool Ccw( P a, P b, P c ) {
-	return fgt( area( a, b, c ), 0.0 );
+  return fgt( (b - a) ^ (c - a), 0.0 );
 }
 
 bool btw( P a, P b, P c ) {
-	return feq( ( b - a ).mag() + ( c - b ).mag(), ( a - c ).mag() );
+  return feq( ( b - a ).mag() + ( c - b ).mag(), ( a - c ).mag() );
 }
 
 bool up( P a ) {
-	return a.y == 0 ? a.x > 0 : a.y > 0;
+  return a.y == 0 ? a.x > 0 : a.y > 0;
 }
 
 // Given a convex polygon, find the area of its smallest bounding rectangle
 
-double rectA(P a, P b, P c, P d, P e) {
-	double h = ((b - a) ^ (d - a))/(b - a).mag();
-	double w1 = ((b - a) * (c - a))/(b - a).mag();
-	double w2 = ((b - a) * (e - a))/(b - a).mag();
-	return fabs(h * (w1 - w2));
+double rectA(P a, P b, P c, P d, P e, double &peri) {
+  double l = (b - a).mag2();
+  double h = ((b - a) ^ (d - a));
+  double w1 = ((b - a) * (c - a));
+  double w2 = ((b - a) * (e - a));
+  double w = w1 - w2;
+  peri = ( w + h ) * 2;
+  return fabs(h * (w1 - w2)) / l;
 }
 
-double bndRect(P p[], int n) {
-	int sl = -1;
-	double minDot = INF;
-	REP(i, n) {
-		double cur = (p[1] - p[0]) * (p[i] - p[0]);
-		if ( cur < minDot ) {
-			minDot = cur;
-			sl = i;
-		}
-	}
+double bndRect(P p[], int n, double &peri) {
+  double minA = INF;
+  for(int i = 0, j = 1, k = 1, l = 1; i < n; i++) {
+    while( fgt((p[i + 1] - p[i]) * (p[j + 1] - p[i]), (p[i + 1] - p[i]) * (p[j] - p[i])) ) j = (j + 1) % n;
+    while( fgt((p[i + 1] - p[i]) ^ (p[k + 1] - p[i]), (p[i + 1] - p[i]) ^ (p[k] - p[i])) ) k = (k + 1) % n;
+    if ( i == 0 ) l = j;
+    while( fle((p[i + 1] - p[i]) * (p[l + 1] - p[i]), (p[i + 1] - p[i]) * (p[l] - p[i])) ) l = (l + 1) % n;
 
-	double minA = INF;
-	for(int i = 0, j = 1, k = 1, l = sl; i < n; i++) {
-		// update right pointer j
-		double last = -INF;
-		int up = 0;
-
-		while(true) {
-			double cur = (p[(i+1)%n] - p[i]) * (p[j%n] - p[i]);
-			if ( cur < last + EPS) break;
-			last = cur;
-			j++; up = 1;
-		}
-		if ( up ) j--;
-
-		// update up pointer k
-		last = -INF; up = 0;
-		while(true) {
-			double cur = (p[(i+1)%n] - p[i]) ^ (p[k%n] - p[i]);
-			if ( cur < last + EPS) break;
-			last = cur;
-			k++; up = 1;
-		}
-		if ( up ) k--;
-
-		// update left pointer l
-		last = INF; up = 0;
-		while(true) {
-			double cur = (p[(i+1)%n] - p[i]) * (p[l%n] - p[i]);
-			if ( cur > last - EPS) break;
-			last = cur;
-			l++; up = 1;
-		}
-		if ( up ) l--;
-
-		double ra = rectA(p[i], p[(i+1)%n], p[j%n], p[k%n], p[l%n]);
-		minA = min(minA, ra);
-	}
-	return minA;
+    double pr;
+    double ra = rectA(p[i], p[i + 1], p[j], p[k], p[l], pr);
+    if ( ra < minA )  {
+      minA = ra; 
+      peri = pr;
+    }
+  }
+  return minA;
 }
 
 int hull(P p[], int n, P ch[], int &hn){
-	sort(p, p + n);
-	hn = 0;
-	for(int i = 0; i < n; i++) {
-		while( hn >= 2 && !ccw(ch[hn - 2], ch[hn - 1], p[i]) ) hn--;
-		ch[hn++] = p[i];
-	}
-	for(int S = hn, i = n - 2; i > 0; i--) {
-		while( hn >= S && hn >= 2 && !Ccw( ch[hn - 2], ch[hn - 1], p[i])) hn--;
-		ch[hn++] = p[i];
-	}
+  sort(p, p + n);
+  hn = 0;
+  for(int i = 0; i < n; i++) {
+    while( hn >= 2 && !Ccw(ch[hn - 2], ch[hn - 1], p[i]) ) hn--;
+    ch[hn++] = p[i];
+  }
+  for(int S = hn, i = n - 2; i >= 0; i--) {
+    while( hn > S && hn >= 2 && !Ccw( ch[hn - 2], ch[hn - 1], p[i])) hn--;
+    ch[hn++] = p[i];
+  }
+  hn--;
 }
 
-#define N 111111
+#define N 1111
 
 int n, hn;
 P p[N], h[N];
 
 int main() {
-	while(scanf("%d", &n), n) {
-		REP(i, n) p[i].eat();
-		if ( n <= 2 ) {
-			printf("%.4f\n", 0.0);
-			continue;
-		}
-		hull(p, n, h, hn);
+  while(scanf("%d", &n), n) {
+    REP(i, n) p[i].eat();
+    hull(p, n, h, hn);
 
-		double ans = bndRect(h, hn);
-		printf("%.4f\n", ans);
-	}
-	return 0;
+    if ( hn < 3 ) {
+      puts( "0.0000" );
+      continue;
+    }
+
+    double peri;
+    double ans = bndRect(h, hn, peri);
+    printf("%.4f\n", ans + EPS);
+  }
+  return 0;
 }

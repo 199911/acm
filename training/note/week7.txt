@@ -83,7 +83,7 @@ Details:
     }
     ---------------------------------------------
 
-    The running time for the above implementation is O(V^2 + E), while an implementation using adjacency list can make the running time O(V+E).
+    The running time for the above implementation is O(V^2 + E), while an implementation using adjacency list can make the running time O(V+E). But there's still some issue on constructing the adjacency list so that we can still go through all neighbours in ascending index.
 
 
   1.5 Directed Eulerian Cycle. 
@@ -129,7 +129,7 @@ Details:
         Given two matching M and M' with |M| < |M'| on G, there exists an augmenting path w.r.t. M in G'.
 
       Prooof:
-        We construct the graph with vertex set V and edges set (M - M) + (M' - M). We orient the edges from M going from B to A and the edges from M' going from A to B (as in residue graph). Then since |M-M'| < |M'-M|, and every path from an exposed vertices from A to a matched vertices in A takes up some number of edges in M as in M', there must be a path from an exposed vertex in A to an exposed vertex in B, which is an augmenting path.
+        We construct the graph with vertex set V and edges set (M - M) + (M' - M). We orient the edges from M going from B to A and the edges from M' going from A to B (as in residue graph). Then since |M-M'| < |M'-M|, and every path from an exposed vertices from A to a matched vertices in A takes up same number of edges in M as in M', there must be a path from an exposed vertex in A to an exposed vertex in B, which is an augmenting path.
 
     2.2.3 Solution:
       The above observation yields a simple algorithm for the problem:
@@ -178,31 +178,107 @@ Details:
       }
       -------------------------------------------------------------------
 
-  2.3 Application
-    (1) Tile Covering
-      Given a grid [1, n] * [1, m], with some sqare (x, y) broken, is it possible to tile up all the remaining grid with a 1 * 2 tile?
+  2.3 Some Variation on Bipartite Matching
+    (1) b-matching
+      STATEMENT:
+        Suppose we allow every vertex a in A be matched to at most b(a) neighbours in B (instead of 1 in the case of bipartite matching), how to find the maximum cardinality matching?
+      SOLUTION:
+        split every vertex a in A into b(a) copies along with its original edges, then run MAXIMUM-BIPARTITE-MATCHING in the resultant graph. 
 
-    (2) Graph Orientation
-      Given an undirected graph G, and an orientation of a subset of edges, is it possible to orient the remaining edges such that the resultant graph has a directed Eulerian cycle.
+    (2) TILE COVER
+      STATEMENT:
+        Given a grid [1, n] * [1, m], with some sqare (x, y) broken, is it possible to tile up all the remaining grid with a 1 * 2 tile?
+      SOLUTION:
+        We construct a graph G = (V, E) where V is the set of intact grids in the grid map, and for every u, v \in V, add an undirected edge {u, v} if u and v is adjacent. It's easy to see that the graph is bipartite (think of the bicoloring in the chessboard). Then the grid map is tilable iffs the graph G has a perfect matching.
 
-    (3) Cycle Cover
-      Given an directed graph, is it possible to cover the graph with edge disjoint directed cycle?
+    (3) EULERIAN ORIENTATION
+      STATEMENT:
+        Given an undirected graph G, and an orientation of a subset of edges, is it possible to orient the remaining edges such that the resultant graph has a directed Eulerian cycle.
+      SOLUTION: 
+        We can also reduce the above problem to the b-matching above. If a vertex v has odd number of vertices, or more than half of its incident edges are assigned as "going out" or "going in", the instance has no solution. Otherwise, we can calculate more many incoming edges a vertex still need to make its in-degree equal to its out degree. Then we construct a bipartite graph G' = (A + B, E), were A is the set of vertices in G and B is the set of unoriented edges in G, and a vertex v is connected to an edge e if the v is incident to e. Then the b-value for each vertice is the number of incoming edges it need as calculated above. Then the graph G has an valid orientation iffs the graph G' has a perfect b-matching. In the perfect matching, if e is mapped to v, then we orient e to the direction of v.
+      SUBMITTABLE PROBLEM: 
+        UVA 10735 http://uva.onlinejudge.org/index.php?option=onlinejudge&page=show_problem&problem=1676 
 
-  2.4 Homework
+    (4) CYCLE COVER
+      STATEMENT:
+        Given an directed graph, is it possible to cover the graph with edge disjoint directed cycle?
+      SOLUTION:
+        We reduce the problem to bipartite matching via a powerful technique called graph spliting. For the directed graph G = (V, E), we split the graph into two half to form a bipartite graph G' = (V1 + V2, E'), where V1, V2 are two copies of V, and for every edge (u, v) in G, we construct an edge from u in V1 to v in V2 in G'. Then the graph has an directed cycle cover iffs G' has a perfect matching. Then the corresponding edges in G forms a cycle cover in G. (Why?)
+
+    (5) MINIMUM PATH COVER IN DIRECTED ACYCLIC GRAPH
+      STATEMENT:
+        Given a directed acyclic graph, cover all the vertices with minimum number of edge disjoint paths.
+      SOLUTION:
+        Similar to CYCLE COVER, we also adopt the split graph technique to solve the MINIMUM PATH COVER problem. The construction is the same, and the minimum cardinality of path cover is equal to ( number of vertices in G - size of maximum matching in G' ). Again, the corresponding edges set in G for the matching forms a minimum path cover.
+      SUBMITTABLE PROBLEM
+        POJ 1422 Air Raid: http://poj.org/problem?id=1422
+
+  2.5 MINIMUM VERTEX COVER ON BIPARTITE GRAPH
+    * Statement: 
+        Given a graph G = (V, E), a vertex cover is a set S \subseteq V such that every edge is incident to ( or says covered by ) a vertex in S. The MINIMUM VERTEX COVER problem ask you to find a vertex cover of minimum size. 
+
+    * Idea
+        MINIMUM VERTEX COVER on general graph is NP-Complete, meaning that a polynomial time algorithm is not likely ( or says apart from brute force, there's no good algorithm for the problem ). But for bipartite graph, we can use bipartite matching to solve the problem. There's a theorem (due to Konig, if you are interested, at least I am :D) showing that the size of minimum vertex cover on a bipartite graph is equal to the size of maximum matching. 
+
+        Proof: 
+          Let k be the size of maximum matching and r be the size of minimum vertex cover, then
+          (1) k <= r: This is because for every matching edges, you need at least one vertex to cover then, and they do not coincide.
+          (2) k >= r: We prove this by constructing a vertex cover of size k.
+
+          Let A, B denote the bipartition of the graph, and let L be the set of vertices that is reachable from an unmatched vertex in A via the path described above (i.e. A -> B if the edge is not in M and B -> A otherwise). We claim the the set S = ( A - L ) + ( B \intersect L ) is a vertex cover. 
+          
+          First we show |S| = |M|: first note that (B \intersect L) consists of only matched vertices, there will be an augmenting path from an unmatched vertex in A to an unmatched vertex in B. Consider the set of vertices matched to a vertex in ( B \intersect L ), together with ( A - L ), which correspond to the set of vertices in A that is matched but not reachable from an exposed vertex in A. Thus we can see ( A - L ) + ( B \intersect L ) has a size the same as the set of all matched vertices in A, i.e. the same as |M|.
+
+          Then we show this is a vertex cover. To show this we only need to show there's no edges going from ( A \intersect L ) to ( B - L ). This is immediate because if there is, which it cannot be a matching edge otherwise the starting point cannot be in L, or it cannot be an unmatched vertex otherwise the ending point will be in L other than ( B - L ). Thus S is a vertex cover, so is not smaller than any minimum vertex cover, i.e. k >= r.
+
+          Therefore k = r and S is a vertex cover. 
+
+      * Application
+          TFT 2011: Joe's Machine
+            Statement: 
+              Once upon a time, there's two country A and B, both having tons of airports and flight route between them. Country a has an disease outbreak, to they want to deploy machines (invented by Joe) to cover all the flight between A and B. For each flight, only one machine is needed, either in A or in B. For cost efficiency, we want to minimize the number of Joe's machine. 
+            Solution:
+              This is exactly a minimum vertex cover on bipartite graph problem.
+
+  2.6 Homework
     UVA 753 http://uva.onlinejudge.org/external/7/753.html
     UVA 10092 http://uva.onlinejudge.org/external/100/10092.html
 
-	2.5 Reference:
+	2.7 Reference:
 		http://www.csie.ntnu.edu.tw/~u91029/Matching.html
 		www-math.mit.edu/~goemans/.../matching-notes.pdf
 		http://en.wikipedia.org/wiki/Matching_%28graph_theory%29
 
-3. Maximum Flow
+3. More on Augmenting Path Algorithm
   
-  3.1 Motivation
+  3.1 Problem:
+  Consider the following problem:
+    Given a set of airports and a set of undirected airways between airports, how to assign direction to the airways so that for each airports, the difference between incoming flight and outgoing flight is no more than a parameter k?
+
+    Formally, the problem is called DEGREE BOUNDED ORIENTATION problem, where we are given an undirected grpah G = (V, E), and a parameter k. We want to assign direction to the edges such that the indegree and outdegree to each node varies no more than 2k.
+
+  3.2 Solution:
+    We start with a random assignment of direction. Then we'll get three types of vertices. The first one, denoted by "+", is the set of vertices with indegree > outdegree + 2k, i.e. has too many incoming edges. The second one, denoted by "-", is the vertices with outdegree > indegree + 2k, i.e. has too many outgoing edges. The rest, denoted by "0", is the node satisfying the requirement.  
+    We repeatedly find an augmenting path from an vertex in "-" to a vertex in "+", while exists, and reverse the direction of every vertex on the path. Then the starting vertex will have its outdegree decreased by 1 and indegree increase by 1, the ending vertex will have its outdegree increased by 1 and indegree decreased by 1. All remaining vertices will have their indgree and outdegree unchanged.
+    If no augmenting path exists while "+" and "-" is still nonempty, we claim there's no possible assignment. Otherwise, we have a valid assignment, or orientation of the graph.
+
+  3.3 Application: 
+    (1) EULERIAN ORIENTATION (revisit)  
+      Using similar approach, we can solve the Eulerian Orientation problem above. Starting with a random orientation, we find an augmenting path from a vertex with too many outgoing edges to a vertex with too many incoming edges and reverse all the edges on the path. The process continues until every vertex has the exact number of incoming edges we want. 
+
+    (2) NBA FIXTURE PROBLEM ( don't google it, I invented the name )
+      Statement: 
+        Given the current scoring ( win = 2 ; loss = 1 ) of n NBA teams and all remaining fixture, want to find out whether is it possible for a given team to win the tournament.  
+
+      Solution:
+        First we want the given team, say A, to win all remaining matches, then A will have a final score, says S. Then we want to assign the win/lost to all remaining fixture so that no team scores higher than S. We can do so by constructing an undirected where the vertex set correspond to the teams, and the edges set correspond to the remaining fixture, i.e. an undirected edge {a, b} if a confront b in a fixture, might have parallel edges. Let an orientation (a, b) being a lost to b, then we want to limit the indegree of every other vertices so that they cannot score higher than A, thus reducing to the DEGREE BOUNDED ORIENTATION problem, 
+
+4. Maximum Flow
+  
+  4.1 Motivation
     The problem was motivated from a very simple setting. Suppose we have a bunch of water pipe with different capacity, connected by junctions. Given a source and a sink, how much water per second we can send from the source to the sink?
 
-  3.2 Definition
+  4.2 Definition
 		A flow network is a 4-tuples (G, c, s, t), where G is an undirected graph, c:E -> R+ is a capacity function for set of edges. s and t is two distinct vertices from G where s is the source and t is the sink.
 		Moreover, we make the restriction that one of c(u, v) or c(v, u) must be zero.
 
@@ -219,7 +295,7 @@ Details:
 
 		Then the MAXIMUM FLOW problem asks you to maximize the total amount of flow going from s to t.
 
-	3.3 Augmenting Path Approach. 
+	4.3 Augmenting Path Approach. 
 		Similar to maximum matching problem, we can solve MAXIMUM FLOW problem using the augmenting path approach. We given a flow network (G = (V, E), c, s, t) and a flow f, we define the following
 		
 		The Residue Network (G, c', s, t) w.r.t. f is defined as 
@@ -232,16 +308,71 @@ Details:
 
 		The proof of the theorem can be seen in CLRS.
 
-	3.4 Algorithm
+	4.4 Algorithm
 		Then we have a very simple algorithm for solving MAXIMUM FLOW problem:
 		----------------------------------------------
 			while( there is an augmenting path in the residue network )
 				augment the flow from the augmenting path by c where c is the minimum capacity of the path
 		----------------------------------------------
 
-	3.5 C++ Implementation
+	4.5 C++ Implementation
 		the C++ implementation uses a nice trick that is often used in undirected graph, i.e. for every edges, (u, v), we would like to efficiently O(1) find the edge (v, u). While this is trivial if we use adjacency matrix, finding the reversed edges can be trickly if we just we adjacency list.
 
 		The idea of this trick is to allocate the space for (u, v) and (v, u) consecutively, so if e is pointing to (u, v), e^1 will be pointing to (v, u).
 
+
+    -----------------------------------------------------------------------------
+    #define N 1111
+    #define M 111111
+
+      int n, m, hd[N], nt[M], ca[M], to[M], en;
+      int s, t;
+
+      void init() {
+          en = 0;
+          memset(hd, -1, sizeof(hd));
+          memset(nt, -1, sizeof(nt));
+      }
+
+      void add(int a, int b, int c) {
+          to[en] = b; nt[en] = hd[a]; ca[en] = c; hd[a] = en++; 
+          to[en] = a; nt[en] = hd[b]; ca[en] = 0; hd[b] = en++; 
+      } 
+
+      int vis[N];
+
+      int dfs(int u, int fl) {
+          vis[u] = 1;
+          if( u == t ) return fl;
+            for(int e = hd[e]; e != -1; e = nt[e]) {
+               int af;
+               if( ca[e] && !vis[to[e]] && (af = dfs(to[e], min(fl, ca[e])))) {
+                  ca[e] -= af;
+                  ca[e^1] += af;
+                  return af;
+               }
+          }
+          return 0;
+      }
+
+      int maxflow() {
+          int ret = 0, af;
+            while( af = dfs(s, INF)) {
+               memset(vis, 0, sizeof(vis));
+               ret += af;
+           }
+           return ret;
+      }
+
+    -----------------------------------------------------------------------------
+
+  4.6 Reference
+    Wikipedia: http://en.wikipedia.org/wiki/Maximum_flow_problem
+    Introduction to Algorithm: http://shafaetsplanet.com/uploads/pdf/Introduction%20to%20Algorithms.pdf (recommended!)
+    Topcoder: http://community.topcoder.com/tc?module=Static&d1=tutorials&d2=maxFlow
+    Notes from Michel Goemans: http://math.mit.edu/~goemans/18433S09/flowscuts.pdf
+    http://www.csie.ntnu.edu.tw/~u91029/Flow.html
+
+  4.7 Homework: just for you to test the implementation
+    UVA 10806 
 

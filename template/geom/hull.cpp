@@ -50,8 +50,12 @@ double area(P a, P b, P c) {
 	return 0.5 * ( ( b - a ) ^ ( c - a ) );
 }
 
-double ccw(P a, P b, P c) {
-	return area(a, b, c) > EPS;
+bool ccw(P a, P b, P c) {
+	return area(a, b, c) > -EPS;
+}
+
+bool Ccw(P a, P b, P c) {
+  return area(a, b, c) > EPS;
 }
 
 #define N 10000
@@ -60,11 +64,11 @@ int hull(P p[], int n, P ch[], int &hn){
 	sort(p, p + n);
 	hn = 0;
 	for(int i = 0; i < n; i++) {
-		while( hn >= 2 && !ccw(ch[hn - 2], ch[hn - 1], p[i]) ) hn--;
+		while( hn >= 2 && !Ccw(ch[hn - 2], ch[hn - 1], p[i]) ) hn--;
 		ch[hn++] = p[i];
 	}
 	for(int S = hn, i = n - 2; i > 0; i--) {
-		while( hn >= S && hn >= 2 && !ccw( ch[hn - 2], ch[hn - 1], p[i])) hn--;
+		while( hn > S && hn >= 2 && !Ccw( ch[hn - 2], ch[hn - 1], p[i])) hn--;
 		ch[hn++] = p[i];
 	}
 }

@@ -1,0 +1,224 @@
+2012 Summer Training Week 8
+Topic: Maximum Flow, Cut
+Speaker: Lapchi
+Scribe: hdw
+
+Agenda: 
+
+* Maximum Flow
+  - Residue Graph, Augmenting Path
+  - Cut
+  - Maximum Flow Min Cut Theorem
+  - Ford Fulkerson Algorithm
+  - Blocking Flow, Dinic Algorithm
+  - Application:
+    + Edge Connectivity Problem ( undirected graph )
+    + Vertex Connectivity Problem
+    + Project Selection Problem
+    ( + Maximum Closure's Problem )
+    + Densiest Subgraph Problem
+      ( + Technique: Fractional Programming )
+
+1. Maximum Flow
+  ( for definition and statement of MAXIMUM FLOW PROBLEM, please refer to note for week 7 )
+  1.1 Residue Network and Augmenting Path
+    * Motivation
+        Given a suboptimal flow, we want to find a way to improve the flow. 
+
+    * Attempt 1:
+        Find a path on the graph G with nonzero capacity.
+        
+        Consider the following network and sub optimal flow
+
+        (1/1) 2 (0/1)
+        -->---o--->---|
+        |     |       |
+        |     |       |
+      S o     |(1/1)  o T
+        |     V       |
+        |(0/1)|       |
+        -->---o--->---|
+              1  (1/1)
+
+        while there's no path from S to T, the flow is clearly sub optimal since it has value 1. The key observation is if we undo the flow on edge (2, 1), we can achieve the following flow
+
+        (1/1) 2 (1/1)
+        -->---o--->---|
+        |     |       |
+        |     |       |
+      S o     |(0/1)  o T
+        |     V       |
+        |(1/1)|       |
+        -->---o--->---|
+              1  (1/1)
+
+        which is of value 2. This make one think that we can not only push some flow forward through those unsaturated edges, we can also "pull" some flow back for those edges with nonzero flow. This yield the following construction.
+
+    * Attempt 2: 
+        Given a flow network (G, c, s, t), and a flow f, we define the residue network (G, c_f, s, t) as 
+          c_f(u, v) = c(u, v) - f(u, v)
+        Then c_f is called the residue capacity w.r.t. flow f.
+
+      Then there's a theorem saying that the flow is maximum if and only if there's no positive capacity path from s to t ( defined as augmenting path ). One of the direction is trivial: if there's an augmenting path, the flow is not maximum since we can improve it using the augmenting path. For the other half, we will prove it in the next session
+
+  1.2 Cut and Minimum Cut
+    
+    1.2.1 Basic Terms
+      There's multiple ways to define cut (although refering to the same thing). Here we will adopt the one in CLRS.
+
+      Definition:
+        A (directed) cut is an bipartition of V into S and T = V - S, both being nonempty. An s-t cut is a cut where s \in S and t \in T.
+        The cut edges is the set of edges (u, v) with u \in S and v \in T.
+
+      Intuitively, think of the water pipe scenario. A cut is a an minimal amount of water pipe, such that if you remove them, no water will be able to follow from source to sink. 
+
+      Then the amount of follow flowing from S to T is called the net flow across the cut, and the capacity of the cut is the sum of capacity of the cut edges.
+
+      It's not difficult to realize that the net flow across any cut is not larger than the capacity of that cut, and the net flow across any s-t cut is the same. Then we know the value of the flow give an lower bound for the capacity of any cut.
+
+    1.2.2 Minimum Cut
+      
+      Consider the following problem: 
+        MINIMUM CUT PROBLEM: 
+          Given a flow network (G, c, s, t), find the s-t cut of minimum capacity.
+
+      We already know the value of any flow, and thus maximum flow, give a lower bound for the capacity of minimum cut. The question is, is the bound tight?
+
+      Well, the max-flow-min-cut theorem says it is tight:
+      
+      Theorem:
+        The value of the maximum flow is equal to the capacity of the minimum cut. 
+
+      Proof:
+        Consider a flow f (after tons of improvements) that the residue network G_f does not have any s-t augmenting path. Then there must be a cut in the residue network (S, T) of zero capacity. ( Why? ) This mean in the original network G, every edges going from S to T is essentially saturated, and every edges going from T to S is empty, which implies the capacity of this cut is equal to the net flow across the cut. 
+
+      Then how to find a min cut?
+        After we have the maximum flow f and its corresponding residue graph G_f, we can classify the vertices into three types. One is the set of vertices reachable from s, denoted by S, and one is reachable from t, denoted by T. The other type is the set of unreachable vertices, denoted by U. Then any cut (S', T'), where S is a subset of S' and T is a subset of T', is essentially a minimum cut. 
+        In other word, it doesn't matter in which side the vertices from U lies. 
+
+    1.3 Algorithms
+
+      1.3.1 Ford Fulkerson Algorithm
+        Ford Fulkerson Algorithm is probably the simplest algorithm for maximum flow. At every iteration, it uses DFS to find an s-t augmenting path and augment the flow. It halts when no augmenting path is available. 
+
+        * Running Time:
+            The worse case running time for Ford Fulkerson Algorithm is O(f(V+E)), where f is the value of the flow. This make the algorithm suitable for those instances where you know the value of the flow is small, says BIPARTITE MATCHING.
+            It's quite easy to construct such test case, so it's left as an exercise.
+
+      1.3.2 Blocking Flow and Dinic Algorithm
+        To obtain a polynomial time algorithm for maximum flow, we need to use the notion of blocking flow, i.e. to "simultaneously" find multiple augmenting paths and augment the flow as much as possible. This is called blocking flow because we want to find as many augmenting path as possible, thus those augmenting paths are "blocking" other augmenting paths before we update the residue network. 
+
+        The Dinic Algorithm, runs in O(V^2 E), are use BFS and DFS to find the blocking flow. At each iteration, we runs BFS onces to partition the residue network into layers, i.e. the nodes with distance 1, 2, 3, ..., n to the source node s. Then we do DFS multiple times to find as many augmenting paths as possible. In DFS, we only consider edges that goes forward, i.e. goes from layer i to layer i+1. 
+
+        The running time of the algorithm is O(V^2 E), i.e. it terminates at most O(V) iterations and each iteration take O(VE) time. But the O(VE) implementation is nontrivial due to the fact that a blocking flow can consist of as many as E augmenting paths. This requires every DFS must runs in O(V) time instead of O(V+E) time. 
+
+        The key idea to the implementation is that if multiple edges, says O(E) edges, is incident to a node, the total traversal time in O(E) DFS can be O(E^2) because we unneccesarily visited many edges that is already visited and saturated. To avoid this, we keep a global pointer remembering where we have traversed in the adjacency list of each node. Thus we don't need to start from the beginning of the list and make tons of unneccesary moves.
+
+------------------------------------------------------------------------------------------------------------------------
+  int cur[N], n, m, hd[N], nxt[M], to[M], end, c[M]; // graph structure
+  int d[N];             // traversal
+  int s, t;             // source and sink
+
+  void init(){
+    for(int i=0; i<n; i++) hd[i]=-1;
+    for(int i=0; i<m; i++) nxt[i]=-1;
+    end=0;
+  }
+
+  void add(int u, int v, int ca, int revc){
+    int tmp=hd[u];
+    hd[u]=end++; nxt[hd[u]]=tmp; to[hd[u]]=v; c[hd[u]]=ca;
+    tmp=hd[v];
+    hd[v]=end++; nxt[hd[v]]=tmp; to[hd[v]]=u; c[hd[v]]=revc;
+  }
+
+  bool bfs(){
+    int q[N], f=0, r=0;
+    for(int i=0; i<n; i++) d[i]=-1;
+    q[r++]=s;
+    d[s]=0;
+    while(f<r){
+      int w=q[f++];
+      for(int p=hd[w]; p!=-1; p=nxt[p])
+        if(c[p]>0&&d[to[p]]==-1){
+          q[r++]=to[p];
+          d[to[p]]=d[w]+1;
+        } 
+    }
+    return d[t]!=-1;
+  }
+
+  int dfs(int w, int fl){
+    if(w==t) return fl;
+    for(int &p=cur[w]; p!=-1; p=nxt[p]){
+      int v=to[p], nf;
+      if(c[p]>0 && d[v]==d[w]+1 && (nf=dfs(v, min(c[p], fl)))){
+        c[p]-=nf; c[p^1]+=nf;
+        return nf;
+      }
+    }
+    return 0;
+  }
+
+  int dinic(){
+    int flow=0, nf;
+    while(bfs()){
+      copy(hd, hd+n, cur);
+      while(nf=dfs(s, INF)){
+        flow+=nf;
+      }
+    }
+    return flow;
+  }
+------------------------------------------------------------------------------------------------------------------------
+
+1.3 Applications
+  1.3.1 Edge Connectivity Problem
+    Given an directed graph G, and a pair of distinct vertices s, t, we want to find the maximum number of edge disjoint paths going from s to t. 
+
+  SOLUTION:
+    set the capacity of every edges to 1 and run maximum flow on (G, c, s, t). The value of the flow is the maximum number of vertex disjoint paths (also called the s-t connectivity number).
+
+  1.3.2 Vertex Connectivity Problem
+    Given an directed graph G, and a pair of distinct vertices s, t, we want to find the maximum number of e disjoint paths going from s to t. 
+
+  SOLUTION:
+    We can split each vertex v into two, says v_in and v_out, and for every edge (u, v), we create an edge (u_out, v_in). Furthermore, for each vertex, we construct one edge going from v_in, v_out. Hence we restrict only one path can go through each vertex v.
+
+  1.3.3 Undirected Edge Connectiviety Problem
+    The problem is essentially the same apart from the graph is undirected. 
+
+  SOLUTION: 
+    the same as 1.3.1 (why?).
+
+  1.3.4 Unweighed Cut
+    As usual, as each semester start, we would like to know about every courses so that we can make a wise selection. To know about a course, we can either 
+    (1) attend a lecture, which takes one hour
+    (2) talk with EVERY student who were attending the lecture, which take one hour per person. 
+    Suppose we are given a table saying that which student has attended which courses, we want to find out how many hours at minimum we should spend to know about every single courses.
+
+  SOLUTION:
+    Observation: 
+      Ususally, it isn't worse it to talk with guys in the classes since it takes at least one hour per class. But sometimes, when there's a relatively small set of students that covers a relatively large set of classes, it's actually a good idea to chat with the set of students instead of to go to all those lectures. In other words, we want to find a "minimum cut" that cut off some lectures, and some students, and the students that is cut off cover all courses that is cut off, which is exactly want minimum cut stated.
+
+    Construction:
+      For the flow network, we create a source s and a sink t. For all courses c_i, we create an edge (s, c_i) with capacity 1. For all student s_i, we create an edge (s_i, t) with capacity 1, and for all courses c_i, student s_j pairs, we create an edge (c_i, s_j) with infinite capacity. Then it's not hard to realize the capacity of the minimum cut is our answer.
+
+  1.3.5 Project Selection Problem
+    Suppose we are given a set of project p_i, and a set of equipment e_i. For each project p_i, we can benefit b_i from completing the project. But to complete the project, a set of equipment must be purchases, which course c_i for each equirpment e_i. Luckily, all equipment are recyclable and we can use one equipment to complete multiple projects. The goal of the problem is to maximize our profit.
+
+    Construction:
+      The construction is basically the same as above, where the left hand size ( connected with source ) are the set of projects and the right hand side are the set of equipments. The capacity of source-project (equipent-sink) edges are the profit (cost) of the project (equipment). Then the min s-t cut correspond to the minimum total sum of the unselected project and the selected equipments, which is indeed something we want to minimize.
+
+  1.3.6 Densest Subgraph
+    Given a graph, we want to find a subgraph S that maximize the ratio between number of edge with number of vertices. 
+
+  SOLUTION:
+    We solve a weaker problem first, called k-Dense Subgraph Problem. In this problem, we are given a graph G and a parameter k. We want to ask whether there exist a subgraph with edge density greater than k?
+
+    It's not difficult to realize we can reduce the Densest Subgraph problem to the problem above with logarithm overhead, for we can do binary search on the density. 
+
+    To solve the problem, we reduce the problem to project selection problem. The edges are the projects, each with profit 1. And the vertices are the equipment, each with cost k. Each edges will require two of its end points. Then it's not hard to realize there exists a subgraph with density k if and only if there's a positive profit in the project selection problem. (Why?)
+
+  1.3.7 Lower Bound Flow
+    This is a more restrictive version of maximum flow. Apart from an upper bound on flow, says capacity, we are also given a lower bound on flow on each edges. 
