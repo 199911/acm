@@ -18,6 +18,7 @@ Agenda:
     ( + Maximum Closure's Problem )
     + Densiest Subgraph Problem
       ( + Technique: Fractional Programming )
+  - Min Cost Max Flow
 
 1. Maximum Flow
   ( for definition and statement of MAXIMUM FLOW PROBLEM, please refer to note for week 7 )
@@ -221,4 +222,48 @@ Agenda:
     To solve the problem, we reduce the problem to project selection problem. The edges are the projects, each with profit 1. And the vertices are the equipment, each with cost k. Each edges will require two of its end points. Then it's not hard to realize there exists a subgraph with density k if and only if there's a positive profit in the project selection problem. (Why?)
 
   1.3.7 Lower Bound Flow
-    This is a more restrictive version of maximum flow. Apart from an upper bound on flow, says capacity, we are also given a lower bound on flow on each edges. 
+    This is a more restrictive version of maximum flow. Apart from an upper bound on flow, says capacity c(e), we are also given a lower bound l(e) on flow on each edges. The question is to find a feasible flow.
+
+  SOLUTION:
+		Our first attempt is to first enforce an l(e) flow on each edges and set the capacity to c(e) - l(e). The problem become this flow does not satisfy the flow conservation condition. Then we have a set of nodes that have excess incoming flow and a set that has excess outgoing flow. How to resolve the problem? We can continuously find augmenting path in the remaining network from an overflow vertex to an underflow vertex and push those excess flow forward. When it terminates, either there's no augmenting path, in which case we say that there's no feasible flow, or we can obtain a feasible flow. 
+
+		Another construction (in cse wiki) is to pretend we have an l(e) amount of flow by 
+			(1) create a fake source S, a fake sink T
+			(2) create an edge from the original sink t to the original source s with infinity capacity
+			(3) for each edge (u, v), subtract l(u, v) from its capacity, and create two edges, (S, v), (u, T) with l(u, v) capacity. 
+
+		After we run maximum flow on the network, there's a feasible flow if and only if every edges from S, to T, is saturated. 
+
+	1.3.8 Matrix Rounding 
+		Given a real matrix, we want to find a way to round its entries (either up or down), together with its column sum and row sum, such that the column sum and row sum is still valid. 
+
+	SOLUTION:
+		Constuct a bipartite graph where the bipartition correspond to the column and row sum. And every entry is an edge connecting its column to its row. For every edges, its upper bound and lower bound is the value after it is rounded up and rounded down. Then run lower bound flow algorithm on the network. 
+
+	1.4 Min Cost Max Flow
+		There can be multiple maximum flow. Given a cost associated with each edge, we want to find the maximum flow with minimum cost, where the cost is defined as the sum_{e} f(e) * c(e), where e is an edge and c is the cost of that edge. 
+
+	SOLUTION:
+		Each time we augment the flow, we find a shortest s-t path (where weight are the cost) to augment the flow. Then the resultant flow is the minimum cost maximum flow. 
+
+	1.4.1 Application:
+		Weighted bipartite matching. 
+			Given a weighted bipartite graph, we want to find the matching with minimum total weight. 
+
+		This can be solved by min cost max flow with our usual construction, but each edge have a capacity 1 with cost being its weight. Then the min cost max flow return its minimum bipartite matching. 
+
+
+2. Reference
+	Introduction to algorithm ( recommended )
+	http://www.csie.ntnu.edu.tw/~u91029/Flow.html
+	http://community.topcoder.com/tc?module=Static&d1=tutorials&d2=maxFlow
+	http://math.mit.edu/~goemans/18433S09/flowscuts.pdf
+	http://adn.botao.hu/adn-backup/blog/attachments/month_0702/o200727231058.pdf ( recommended for min-cut)
+
+3. Homework
+	naked max flow: http://poj.org/problem?id=1273
+	http://poj.org/problem?id=1459
+	http://poj.org/problem?id=3469
+	http://uva.onlinejudge.org/external/103/10330.html
+	http://uva.onlinejudge.org/external/8/820.html
+
