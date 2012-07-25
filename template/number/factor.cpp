@@ -14,12 +14,14 @@
 #include <stack>
 #include <iostream>
 #include <iomanip>
+#include <sstream>
 #include <string>
 using namespace std;
 
 #define FOR(i,a,b) for (int i = (a); i < (b); i++)
 #define FOE(i,a,b) for (int i = (a); i <= (b); i++)
 #define FR(i,e) for(__typeof(e.begin()) i = e.begin(); x != e.end(); i++)
+#define SQR(x) ((x)*(x))
 #define REP(i,n) FOR(i,0,n)
 #define CLR(a,b) memset(a, b, sizeof(a))
 #define INF (1<<29)
@@ -31,12 +33,11 @@ using namespace std;
 #define gmin(a,b) { if ( b < a ) a = b; }
 #define gmax(a,b) { if ( b > a ) a = b; }
 
-#define N 11111
+#define N (1<<17)
 
 bool ip[N];
 LL p[N], pn;
 
-// generating prime up to n
 void seive( LL n ) {
   CLR(ip, 1);
   ip[0] = ip[1] = 0;
@@ -47,6 +48,28 @@ void seive( LL n ) {
       for ( int j = i + i; j < n; j += i ) 
         ip[j] = 0;
     }
+  }
+}
+
+void factorize( LL x, LL p[], LL e[], LL r ) {
+  LL res = x;
+  r = 0;
+
+  for ( int i = 0; res > 1 && i < pn && SQR(p[i]) <= x; i++ ) {
+    if ( res % p[i] == 0 ) {
+      p[r] = p[i];
+      e[r]  =0;
+      while ( res % p[i] == 0 ) {
+        res /= p[i];
+        e[r]++;
+      }
+      r++;
+    }
+  }
+
+  if ( res > 1 ) {
+    p[r] = res;
+    e[r++] = 1;
   }
 }
 

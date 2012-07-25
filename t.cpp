@@ -21,6 +21,7 @@ using namespace std;
 #define FOR(i,a,b) for (int i = (a); i < (b); i++)
 #define FOE(i,a,b) for (int i = (a); i <= (b); i++)
 #define FR(i,e) for(__typeof(e.begin()) i = e.begin(); x != e.end(); i++)
+#define SQR(x) ((x)*(x))
 #define REP(i,n) FOR(i,0,n)
 #define CLR(a,b) memset(a, b, sizeof(a))
 #define INF (1<<29)
