@@ -40,7 +40,7 @@ LL exp( LL a, LL b, LL m ) {
   return res;
 }
 
-bool prime( LL n ) {
+bool isprime( LL n ) {
   srand(time(NULL));
 
   LL k = 0;
