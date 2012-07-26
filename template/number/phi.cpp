@@ -38,54 +38,62 @@ using namespace std;
 bool ip[N];
 LL p[N], pn;
 
-void seive( int n ) {
-  CLR( ip, 1 );
+void seive( LL n ) {
+  CLR(ip, 1);
+  ip[0] = ip[1] = 0;
   pn = 0;
-  for( int i = 2 ; i < n; i++ ) {
+  for( LL i = 2; i < n; i++ ) {
     if ( ip[i] ) {
       p[pn++] = i;
-      for ( int j = i + i; j < n; j += i ) ip[j] = 0;
+      for ( int j = i + i; j < n; j += i ) 
+        ip[j] = 0;
     }
   }
 }
 
-void factorize( LL x, LL pf[], LL pe[], LL &r ) {
+void factorize( LL x, LL p[], LL e[], LL &r ) {
   LL res = x;
   r = 0;
+
   for ( int i = 0; res > 1 && i < pn && SQR(p[i]) <= x; i++ ) {
     if ( res % p[i] == 0 ) {
-      pf[r] = p[i];
-      pe[r] = 0;
+      p[r] = p[i];
+      e[r]  =0;
       while ( res % p[i] == 0 ) {
-        pe[r]++;
         res /= p[i];
+        e[r]++;
       }
       r++;
     }
   }
+
   if ( res > 1 ) {
-    pf[r] = res;
-    pe[r++] = 1;
+    p[r] = res;
+    e[r++] = 1;
   }
 }
 
+LL phi( LL x ) {
+	LL pf[111], pe[111], r;
+	factorize( x, pf, pe, r );
+
+	for ( int i = 0; i < r; i++ ) x = x / pf[i] * ( pf[i] - 1 );
+	
+	return x;
+}
+
+void genphi( int phi[], int n ) {
+	for ( int i = 0; i < n; i++ ) phi[i] = i;
+	phi[1] = phi[0] = 0;
+	for ( int i = 2; i < n; i++ ) {
+		if ( phi[i] == i ) {
+			phi[i]--;
+			for ( int j = i + i; j < n; j += i ) 
+				phi[j] = phi[j] / i * ( i - 1 );
+		}
+	}
+}
+
 int main() {
-  LL n, cas = 1;
-  seive( N );
-  while ( scanf( "%lld", &n ), n ) {
-    LL pf[1111], pe[1111], r;
-    factorize( n, pf, pe, r );
-    LL sum = 0;
-    if ( r <= 1 ) {
-      sum = n + 1;
-    } else {
-      REP( i , r ) {
-        LL s = 1;
-        REP( j, pe[i] ) s *= pf[i];
-        sum += s;
-      }
-    }
-    printf( "Case %lld: %lld\n", cas++, sum );
-  }
   return 0;
 }

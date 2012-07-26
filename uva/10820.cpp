@@ -33,46 +33,39 @@ using namespace std;
 #define gmin(a,b) { if ( b < a ) a = b; }
 #define gmax(a,b) { if ( b > a ) a = b; }
 
-#define N (1<<17)
-
-bool ip[N];
-LL p[N], pn;
-
-void seive( LL n ) {
-  CLR(ip, 1);
-  ip[0] = ip[1] = 0;
-  pn = 0;
-  for( LL i = 2; i < n; i++ ) {
-    if ( ip[i] ) {
-      p[pn++] = i;
-      for ( int j = i + i; j < n; j += i ) 
-        ip[j] = 0;
-    }
-  }
+void genphi( int phi[], int n ) {
+	for ( int i = 0; i < n; i++ ) 
+		phi[i] = i;
+	phi[1] = 0;
+	for ( int i = 2; i < n; i++ ) {
+		if ( phi[i] == i ) {
+			phi[i]--;
+			for ( int j = i + i; j < n; j += i ) 
+				phi[j] = phi[j] / i * ( i - 1 );
+		}
+	}
 }
 
-void factorize( LL x, LL p[], LL e[], LL &r ) {
-  LL res = x;
-  r = 0;
+#define N 50005
 
-  for ( int i = 0; res > 1 && i < pn && SQR(p[i]) <= x; i++ ) {
-    if ( res % p[i] == 0 ) {
-      p[r] = p[i];
-      e[r]  =0;
-      while ( res % p[i] == 0 ) {
-        res /= p[i];
-        e[r]++;
-      }
-      r++;
-    }
-  }
-
-  if ( res > 1 ) {
-    p[r] = res;
-    e[r++] = 1;
-  }
-}
+int ph[N], ps[N];
 
 int main() {
+	
+	genphi(ph, N);
+
+	ph[1] = ph[0] = 0;
+	ps[2] = ph[2];
+
+	for ( int i = 3; i < N; i++ ) {
+		ps[i] = ph[i] + ps[i-1]; 
+	}
+
+	int n;
+	while ( scanf( "%d", &n ), n ) {
+		printf( "%d\n", 2 * ps[n] + 1 );
+	}
+
+
   return 0;
 }
