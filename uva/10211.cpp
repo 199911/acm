@@ -33,35 +33,38 @@ using namespace std;
 #define gmin(a,b) { if ( b < a ) a = b; }
 #define gmax(a,b) { if ( b > a ) a = b; }
 
-#define N 44444
-
-bool ip[N]; 
-int pl[N], pn;
-
-void seive( int n ) {
-  pn = 0;
-  memset( ip, 1, sizeof( ip ) );
-  for ( int i = 2; i < n; i++ ) {
-    if ( ip[i] ) {
-      pl[pn++] = i;
-      for ( int j = i + i; j < n; j += i ) ip[j] = 0;
-    }
-  }
-}
-
-int joseph( int n ) {
-  int ans = 0;
-  for ( int i = 1; i <= n; i++ ) {
-    ans = ( ans + pl[n - i] ) % i;
-  }
-  return ans;
-}
-
 int main() {
-  seive(N);
-  int n ;
-  while ( scanf( "%d", &n ), n ) {
-    printf( "%d\n", joseph( n ) + 1 );
+  int b, d, T;
+  cin >> T;
+
+  while ( T-- ) {
+    cin >> b >> d;
+
+    int res = b % d, rm = -1, aa = -1, at = -1;
+
+    for ( int i = 1; i <= 1000; i++ ) {
+      if ( res % d == 0 && rm == -1 ) rm = i;
+      if ( res % d == d - 1 && at == -1 ) at = i;
+      if ( res % d == 1 && aa == -1 ) aa = i;
+      res *= b; res %= d; 
+    }
+
+    if ( rm != -1 ) {
+      printf( "Rightmost %d\n", rm );
+    } 
+
+    if ( aa != -1 ) {
+      printf( "Add all %d\n", aa );
+    }
+
+    if ( at != -1 ) {
+      printf( "Alternate %d change sign\n", at );
+    }
+
+    if ( rm == -1 && aa == -1 && at == -1 ) puts( "condition not found." );
+
+    if ( T ) puts( "" );
+    
   }
   return 0;
 }

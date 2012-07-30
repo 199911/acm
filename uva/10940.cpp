@@ -33,35 +33,18 @@ using namespace std;
 #define gmin(a,b) { if ( b < a ) a = b; }
 #define gmax(a,b) { if ( b > a ) a = b; }
 
-#define N 44444
-
-bool ip[N]; 
-int pl[N], pn;
-
-void seive( int n ) {
-  pn = 0;
-  memset( ip, 1, sizeof( ip ) );
-  for ( int i = 2; i < n; i++ ) {
-    if ( ip[i] ) {
-      pl[pn++] = i;
-      for ( int j = i + i; j < n; j += i ) ip[j] = 0;
-    }
-  }
-}
-
-int joseph( int n ) {
-  int ans = 0;
-  for ( int i = 1; i <= n; i++ ) {
-    ans = ( ans + pl[n - i] ) % i;
-  }
-  return ans;
-}
+#define N 500007
 
 int main() {
-  seive(N);
-  int n ;
+  int q[N];
+
+  q[0] = -1;
+  q[1] = 0;
+  for ( int i = 2; i < N; i++ ) q[i] = ( q[i - 1] + 2 ) % i;
+
+  int n;
   while ( scanf( "%d", &n ), n ) {
-    printf( "%d\n", joseph( n ) + 1 );
+    printf( "%d\n", q[n - 1] + 2);
   }
   return 0;
 }
