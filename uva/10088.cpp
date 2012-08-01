@@ -3,7 +3,6 @@
 #include <cstdlib>
 #include <cmath>
 #include <ctime>
-#include <cctype>
 #include <algorithm>
 #include <utility>
 #include <numeric>
@@ -34,6 +33,44 @@ using namespace std;
 #define gmin(a,b) { if ( b < a ) a = b; }
 #define gmax(a,b) { if ( b > a ) a = b; }
 
+#define N 1111
+
+LL area( LL x[], LL y[], int n ) {
+  LL ret = 0;
+
+  x[n] = x[0]; y[n] = y[0];
+  REP( i, n ) {
+    ret += x[i] * y[i + 1] - x[i + 1] * y[i];
+  }
+  if ( ret < 0 ) ret = -ret;
+  ret >>= 1;
+
+  return ret;
+}
+
+LL gcd( LL a, LL b ) {
+  return b ? gcd( b, a % b ) : a;
+}
+
+LL pick( LL x[], LL y[], int n ) {
+  LL A = area(x, y, n), b = 0, ret = 0;
+
+  REP( i, n ) {
+    b += gcd( abs(x[i] - x[(i + 1) % n]), abs(y[i] - y[(i + 1) % n]));
+  }
+
+  return A + 1 - b / 2;
+}
+
 int main() {
+  LL x[N], y[N];
+  int n;
+
+  while ( cin >> n, n ) {
+    REP( i, n ) 
+      cin >> x[i] >> y[i];
+    printf( "%lld\n", pick(x, y, n) );
+  }
+  
   return 0;
 }

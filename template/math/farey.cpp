@@ -34,6 +34,33 @@ using namespace std;
 #define gmin(a,b) { if ( b < a ) a = b; }
 #define gmax(a,b) { if ( b > a ) a = b; }
 
+// enumerate f_MAX
+int MAX;
+
+void dfs( int lm, int ln, int rm, int rn ) {
+  int cm = lm + rm, cn = ln + rn;
+  if ( cn > MAX ) return;
+  dfs( lm, ln, cm, cn );
+  printf( "%d / %d\n", cm, cn );
+  dfs( cm, cn, rm, rn );
+}
+
+// find two consecutive element in F_N that enclose x / y
+// in log n time
+
+int x, y, m, n;
+
+void lower_bound( int lm, int ln, int rm, int rn ) {
+  int cm = lm + rm, cn = ln + rn;
+  if ( cn > MAX ) return;
+
+}
+
+
+
 int main() {
+  while ( cin >> MAX ) {
+    dfs( 0, 1, 1, 1 );
+  }
   return 0;
 }
