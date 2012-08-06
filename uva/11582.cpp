@@ -34,6 +34,56 @@ using namespace std;
 #define gmin(a,b) { if ( b < a ) a = b; }
 #define gmax(a,b) { if ( b > a ) a = b; }
 
+#define N 4444
+
+int MOD;
+
+void tobit( LL x, int d[], int &n ) {
+	n = 0;
+	while ( x ) {
+		d[n++] = x % 2;
+		x >>= 1;
+	}
+}
+
+
+// multiply 2 * 2 matrices
+void mul( int a[2][2], int b[2][2], int c[2][2] ) {
+	REP( i, 2 ) REP( j, 2 ) {
+		c[i][j] = 0;
+		REP( k , 2 ) { 
+			c[i][j] += a[i][k] * b[k][j];
+			c[i][j] %= MOD;
+		}
+	}
+}
+
+void exp( int a[2][2], int b[], int n, int res[2][2] ) {
+	int tmp[2][2];
+	REP( i, 2 ) REP( j, 2 ) res[i][j] = i == j;
+	REP( i, n ) {
+		if ( b[i] & 1LL ) {
+			mul( res, a, tmp );
+			REP( i, 2 ) REP( j, 2 ) res[i][j] = tmp[i][j];
+		}
+		mul(a, a, tmp);
+		REP(i, 2) REP( j, 2 ) a[i][j] = tmp[i][j];
+	}
+}
+
+int fib( LL a, LL b ) {
+	int res[2][2] = { {1, 1}, {1, 0} }, tmp[2][2];
+
+	return res[0][1];
+}
+
 int main() {
+	LL a, b, T;
+	cin >> T;
+	while ( T-- ) {
+		cin >> a >> b >> MOD;
+		int res= fib( a, b );
+		printf( "%d\n", res );
+	}
   return 0;
 }

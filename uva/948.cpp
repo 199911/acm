@@ -34,6 +34,37 @@ using namespace std;
 #define gmin(a,b) { if ( b < a ) a = b; }
 #define gmax(a,b) { if ( b > a ) a = b; }
 
+#define N 111111111 
+
+LL f[11111];
+int fn = 0;
+
+
 int main() {
+	f[0] = 0;
+	f[1] = 1;
+	for ( fn = 2; (f[fn] = f[fn - 1] + f[fn - 2]) <= N; fn++ );
+
+	LL n;
+	int t;
+
+	cin >> t;
+
+	while ( t-- ) {
+		cin >> n;
+
+		int p = fn - 1;
+		while ( f[p] > n ) p--;
+
+		printf( "%lld = ", n );
+
+		for ( int i = p; i > 1; i-- ) {
+			printf( "%d", n >= f[i] ? 1 : 0 );
+			if ( n >= f[i] ) n -= f[i];
+		}
+
+		puts( " (fib)" );
+
+	}
   return 0;
 }

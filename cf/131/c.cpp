@@ -64,7 +64,6 @@ void eat() {
 int main() {
   eat();
 
-
   int ans = 1<<29;
 
   REP( st, 3 ) {

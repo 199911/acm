@@ -1,5 +1,4 @@
 #include <cstdio>
-#include <cctype>
 #include <cstring>
 #include <cstdlib>
 #include <cmath>
@@ -34,6 +33,38 @@ using namespace std;
 #define gmin(a,b) { if ( b < a ) a = b; }
 #define gmax(a,b) { if ( b > a ) a = b; }
 
+void genphi( int ph[], int n ) {
+	for ( int i = 0; i < n; i++ ) ph[i] = i;
+	ph[1] = 0;
+	for ( int i = 2; i < n; i++ ) 
+		if ( ph[i] == i ) {
+			ph[i]--;
+			for ( int j = i + i; j < n; j += i ) ph[j] = ph[j] / i * ( i - 1 );
+		}
+}
+
+#define N 2000005
+int ph[N], d[N];
+LL ps[N];
+
 int main() {
+	genphi( ph, N );
+	d[2] = 1;
+	d[1] = 0;
+	ps[2] = 1;
+	ps[1] = 0;
+
+	for ( int i = 3; i < N; i++ ) { 
+		d[i] = d[ph[i]] + 1;
+		ps[i] = d[i] + ps[i - 1];
+	}
+
+	int T;
+	scanf( "%d", &T );
+	while ( T-- ) {
+		int a, b;
+		scanf( "%d%d", &a, &b );
+		printf( "%lld\n", ps[b] - ps[a - 1]);
+	}
   return 0;
 }
