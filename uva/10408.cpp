@@ -1,5 +1,4 @@
 #include <cstdio>
-#include <cctype>
 #include <cstring>
 #include <cstdlib>
 #include <cmath>
@@ -35,6 +34,25 @@ using namespace std;
 #define gmin(a,b) { if ( b < a ) a = b; }
 #define gmax(a,b) { if ( b > a ) a = b; }
 
+// enumerate f_MAX
+int MAX, k;
+
+void dfs( int lm, int ln, int rm, int rn ) {
+  int cm = lm + rm, cn = ln + rn;
+  if ( cn > MAX ) return;
+  dfs( lm, ln, cm, cn );
+  //printf( "k = %d\n%d/%d\n", k, cm, cn);
+  if ( --k == 0 ) { 
+    printf( "%d/%d\n", cm, cn );
+  }
+  dfs( cm, cn, rm, rn );
+}
+
 int main() {
+  while ( cin >> MAX >> k ) {
+    dfs( 0, 1, 1, 1 );
+    if ( k > 0 ) printf( "1/1\n");
+
+  }
   return 0;
 }

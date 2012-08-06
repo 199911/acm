@@ -1,5 +1,4 @@
 #include <cstdio>
-#include <cctype>
 #include <cstring>
 #include <cstdlib>
 #include <cmath>
@@ -34,6 +33,23 @@ using namespace std;
 #define OSS ostringstream
 #define gmin(a,b) { if ( b < a ) a = b; }
 #define gmax(a,b) { if ( b > a ) a = b; }
+
+// given date, find which day is it
+// monday = 0, tuesday = 1, ....
+
+int weekday( int y, int m, int d ) {
+  if ( m <= 2 ) { 
+    m += 12;
+    y--; 
+  } 
+
+  int w = 0;
+  if ( y < 1752 || ( y == 1752 &&  m < 9 ) || ( y == 1752 && m == 9 && d < 3 ) ) {
+    w = ( d + 2 * m + 3 * ( m + 1 ) / 5 + y + y / 4 + 5) % 7;
+  } else {
+    w = ( d + 2 * m + 3 * ( m + 1 ) / 5 + y + y / 4 + y / 100 + y / 400 ) % 7;
+  }
+}
 
 int main() {
   return 0;

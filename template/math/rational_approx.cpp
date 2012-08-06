@@ -1,5 +1,4 @@
 #include <cstdio>
-#include <cctype>
 #include <cstring>
 #include <cstdlib>
 #include <cmath>
@@ -35,6 +34,39 @@ using namespace std;
 #define gmin(a,b) { if ( b < a ) a = b; }
 #define gmax(a,b) { if ( b > a ) a = b; }
 
+LL MAX;
+
+// find the smallest term in the  Farey series that is >= a/b
+// assume a / b < 1
+void rational_approx( LL a, LL b, LL &lm, LL &ln, LL &rm, LL &rn ) {
+  if ( a == 0 ) {
+    lm = rm = 0; ln = rn = 1;
+    return;
+  } else if ( a == b ) {
+    lm = rm = 1; ln = rn = 1;
+    return ;
+  }
+  lm = 0; ln = 1; rm = 1; rn = 1;
+  while ( true ) {
+    // a / b strictly enclosed in (( lm / ln ,  rm / rn )
+    LL cm = lm + rm, cn = ln + rn;
+    if ( cn > MAX ) return;
+    if ( a * cn - b * cm == 0 ) {
+      lm = rm = cm; ln = rn = cn;
+      return;
+    } else if ( a * cn - b * cm < 0 ) {
+      rn = cn; rm = cm;
+    } else {
+      ln = cn; lm = cm;
+    }
+  }
+}
+
 int main() {
+  LL a, b, lm, ln, rm, rn;
+  while ( cin >> a >> b >> MAX ) { 
+    rational_approx( a, b, lm, ln, rm, rn );
+    printf( "%lld/%lld <= %lld/%lld <= %lld/%lld\n", lm, ln, a, b, rm, rn );
+  }
   return 0;
 }
