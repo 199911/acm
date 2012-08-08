@@ -35,5 +35,19 @@ using namespace std;
 #define gmax(a,b) { if ( b > a ) a = b; }
 
 int main() {
+	LL m, n, s, cnt = 0;
+
+	cin >> n >> m >> s;
+
+	for ( int w1 = 1; w1 <= m; w1 += 2 ) {
+		for ( int h1 = 1; w1 * h1 <= s && h1 <= n; h1 += 2 ) {
+			for ( int w2 = 1; w2 <= m; w2 += 2 ) {
+
+			}
+		}
+	}
+
+	cout << cnt << endl;
+
   return 0;
 }

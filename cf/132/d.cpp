@@ -35,5 +35,33 @@ using namespace std;
 #define gmax(a,b) { if ( b > a ) a = b; }
 
 int main() {
-  return 0;
+	LL n, m;
+	LL t[111111], T[111111], c[111111], x[111111];
+
+	cin >> n >> m;
+
+	REP( i, n ) {
+		cin >> t[i] >> T[i] >> x[i] >> c[i];
+	}
+
+	LL ans = 0;
+	REP( i, n ) {
+		LL cap = T[i] - t[i];
+		LL tmp;
+
+		if ( cap > 0 ) {
+			LL ca = m / cap + ( m % cap ? 1 : 0);
+			LL tmp1 = ca * c[i];
+			LL cb = m / cap;
+			LL tmp2 = cb * c[i] + ( m % cap ? m % cap + cap: 0 ) * x[i];
+			LL tmp3 = c[i] + x[i] * m;
+			tmp = min(tmp1, min(tmp2, tmp3)); 
+		} else {
+			tmp = m * x[i] + c[i];
+		}
+
+		ans += tmp;
+	}
+	cout << ans << endl;
+	return 0;
 }

@@ -34,6 +34,46 @@ using namespace std;
 #define gmin(a,b) { if ( b < a ) a = b; }
 #define gmax(a,b) { if ( b > a ) a = b; }
 
+LL count( LL k ) {
+	LL tmp = k;
+	LL cnt = 0;
+	int cb = 0;
+	while ( tmp ) {
+		cb++; tmp >>= 1;
+	} 
+
+	for ( int p = 1; p < cb; p++ ) {
+		LL c, tmp = 0, s, t;
+
+		if ( cb % p == 0 ) {
+			s = k;
+			while ( s >> p ) s >>= p;
+			s -= 1 << (p - 1);
+			s++;
+
+			tmp += s;
+
+		}
+
+		if ( cb / p > 2 ) {
+			tmp += ( cb / p - 2 ) * ( (1 << (p - 1)));
+		}
+
+
+		c = 1;
+
+		for ( int i = p + p; i < cb; i += p )  c--;
+
+		cnt += tmp * c;
+	}
+
+	return cnt;
+}
+
 int main() {
+	LL l, r;
+
+	cin >> l >> r;
+	cout << count(r) - count( l - 1 ) << endl;
   return 0;
 }
