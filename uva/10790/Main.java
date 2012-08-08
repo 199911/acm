@@ -6,6 +6,7 @@ import java.util.*;
 public class Main {
   public static void main( String[] args ) throws Exception {
     Scanner cin = new Scanner( System.in );
+    int cas = 1;
     while ( true ) {
       int a = cin.nextInt(), b = cin.nextInt();
 
@@ -13,6 +14,7 @@ public class Main {
         break;
       }
 
+      System.out.print( "Case " + cas++ + ": " );
       if ( a <= 1 || b <= 1 ) {
         System.out.println( 0 );
         continue;
