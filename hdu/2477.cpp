@@ -171,8 +171,8 @@ void build() {
     } else {
       // update curY
       curY = c[evt[i]%n].y - r[evt[i]%n];
-      T.erase(evt[i] % n);
-      T.erase(evt[i] );
+      T.erase( evt[i] % n);
+      T.erase( evt[i] );
     }
   }
 }

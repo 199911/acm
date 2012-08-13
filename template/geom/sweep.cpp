@@ -107,17 +107,16 @@ struct E {
 
   double getX( double curY ) const {
     if ( feq( a.y, b.y ) ) return 0.5 * ( a.x + b.x );
-    if ( fgt( curY, a.y ) ) return a.x;
-    if ( flt( curY, b.y ) ) return b.x;
+    if ( fgt( curY, a.y ) ) return a.y;
+    if ( flt( curY, b.y ) ) return b.y;
     return a.x + ( b.x - a.x ) * ( curY - a.y ) / ( b.y - a.y );
   }
 
   bool operator<( const E &e ) const {
     double x = getX( curY ), ex = e.getX( curY );
     if ( !feq( x, ex ) ) return x < ex;
-    if ( open ^ e.open ) return open;
-    if ( open ) return ( ( b - a ) ^ ( e.b - e.a ) ) > EPS;
-    else return ( ( b - a ) ^ ( e.b - e.a ) ) < -EPS;
+    if ( tid != e.tid ) return tid < e.tid;
+    return open > e.open;
   }
 } ed[N * 3];
 
@@ -138,7 +137,7 @@ struct comp_edg {
 
 bool enclose_1 ( P a, P b, P c, P d ) {
   if ( !Ccw( a, b, c )) swap( a, b );
-  return ccw( a, b, d ) && ccw( b, c, d ) && ccw ( c, a, d );
+  return Ccw( a, b, d ) && Ccw( b, c, d ) && Ccw ( c, a, d );
 }
 
 bool enclose( P ta, P tb, P tc, P sa, P sb, P sc ) {
@@ -168,23 +167,26 @@ void init() {
   en = 0;
 }
 
-void add ( int a, int b ) {
+void add( int a, int b ) {
+  to[en] = b; nt[en] = hd[a]; hd[a] = en++; p[b] = a;
 }
 
 bool sweep() {
   // event queue
   int q[N * 3 * 2], qn = 0;
-  bool fl[N], ok = 1;
+  bool fl[N];
   FOE( i, 1, m ) {
     q[qn++] = i;
     q[qn++] = -i;
   }
 
-  REP( i, n ) fl[i] = 0;
+  T.clear();
+  init();
+  CLR( fl, 0 );
 
   sort( q, q + qn, comp_evt );
 
-  /*
+#ifdef DEBUG
   REP( i, qn ) {
     printf( "%s(%d): ", q[i] > 0 ? "insert" : "remove", q[i] );
     ed[abs(q[i])].a.out(); 
@@ -192,97 +194,126 @@ bool sweep() {
     printf( " %d ", ed[abs(q[i])].tid );
     puts( "" );
   }
-  */
+#endif
 
   REP( i, qn ) {
     if ( q[i] > 0 ) {
+      curY = ed[q[i]].a.y;
+      // printf( "curY = %lf\n", curY );
       // insert segments 
       SIT it = T.insert( q[i] ).first;
       SIT pit = pred( it ), sit = succ( it );
-
+      
       E cur = ed[*it];
+
+#ifdef DEBUG
+      printf( "curY = %f\n", curY );
+      printf("insert: ");
+      cur.a.out();
+      cur.b.out();
+      printf( "(%d)\n", cur.open );
+
+      for( SIT iter = T.begin(); iter != T.end(); iter++ ) {
+        E x = ed[*iter];
+        printf( "[" );
+        x.a.out(); x.b.out(); 
+        printf( "(%.1f)", x.getX(curY));
+        
+        printf( "]" );
+      }
+      puts( "" );
+#endif
 
       // see if there is intersection
       if ( pit != it && ed[*pit].tid != cur.tid ) {
         E ped = ed[*pit];
-        if ( intersect( ped.a, ped.b, cur.a, cur.b ) ) {
-         ok = 0;
-         /*
-         printf( "intersect:" );
-         ped.a.out();
-         ped.b.out();
-         cur.a.out();
-         cur.b.out();
-         printf( "(%d, %d)\n", ped.tid, cur.tid);
-         */
-        } else {
-        }
+        if ( intersect( ped.a, ped.b, cur.a, cur.b ) ) return 0; 
       }
 
       if ( sit != T.end() && ed[*sit].tid != cur.tid ) {
         E sed = ed[*sit];
-        if ( intersect( sed.a, sed.b, cur.a, cur.b ) ) {
-          ok = 0;
-          /*
-          printf( "intersect:" );
-          sed.a.out();
-          sed.b.out();
-          cur.a.out();
-          cur.b.out();
-          printf( "(%d, %d)\n", sed.tid, cur.tid );
-          */
+        if ( intersect( sed.a, sed.b, cur.a, cur.b ) ) 
+          return 0;
+      }
+
+      if ( !fl[cur.tid] ) {
+        if ( pit == it ) {
+          add( root, cur.tid );
         } else {
+          if ( enclose_tri( ed[*pit].tid, ed[*it].tid ) ) {
+            add( ed[*pit].tid, cur.tid );
+          } else {
+            add( p[ed[*pit].tid], cur.tid );
+          }
         }
       }
 
+      fl[cur.tid] = 1;
+
     } else {
+      curY = ed[-q[i]].b.y;
       SIT it = T.find( -q[i] );
       SIT pit = pred( it ), sit = succ( it );
 
       E cur = ed[*it];
 
+#ifdef DEBUG
+      printf( "curY = %f\n", curY );
+      printf( "remove: " );
+      cur.a.out();
+      cur.b.out();
+      printf( "(%d)\n", cur.open );
+#endif
+
       if ( pit != it && sit != T.end() && ed[*sit].tid != ed[*pit].tid ) {
         E ped = ed[*pit], sed = ed[*sit];
-        if ( intersect( ped.a, ped.b, sed.a, sed.b ) ) {
-          ok = 0;
-          /*
-          printf( "intersect(%d,%d):", *pit, *sit );
-          ped.a.out();
-          ped.b.out();
-          sed.a.out();
-          sed.b.out();
-          printf( "(%d, %d)\n", ped.tid, sed.tid);
-          */
-        }
+        if ( intersect( ped.a, ped.b, sed.a, sed.b ) ) 
+          return 0;
       }
 
       T.erase( it );
     }
   }
 
-  return ok;
+  return 1;
+}
+
+int d[N];
+bool vis[N];
+
+void dfs( int x ) {
+  vis[x] = 1;
+  for ( int e = hd[x]; e != -1; e = nt[e] ) {
+    if ( vis[to[e]] ) continue;
+    dfs( to[e] );
+    d[x] = max( d[x], d[to[e]] + 1 );
+  }
 }
 
 int main() {
+  int cas = 1;
   while ( scanf( "%d", &n ), n >= 0  ) {
     m = 0;
     FOE( i, 1, n ) {
       REP ( j, 3 ) tri[i][j].eat();
       sort( tri[i], tri[i] + 3, comp_pnt );
       if ( Ccw( tri[i][0], tri[i][1], tri[i][2] ) ) {
-        ed[++m] = E( tri[i][0], tri[i][1], 0, i );
-        ed[++m] = E( tri[i][1], tri[i][2], 0, i );
-        ed[++m] = E( tri[i][0], tri[i][2], 1, i );
+        ed[++m] = E( tri[i][0], tri[i][1], 1, i );
+        ed[++m] = E( tri[i][1], tri[i][2], 2, i );
+        ed[++m] = E( tri[i][0], tri[i][2], 0, i );
       } else {
         ed[++m] = E( tri[i][0], tri[i][1], 1, i );
-        ed[++m] = E( tri[i][1], tri[i][2], 1, i );
-        ed[++m] = E( tri[i][0], tri[i][2], 0, i );
+        ed[++m] = E( tri[i][1], tri[i][2], 0, i );
+        ed[++m] = E( tri[i][0], tri[i][2], 2, i );
       }
     }
     if ( sweep() ) {
-      puts( "haha" );
+      FOE( i, 0, n ) d[i] = 1;
+      CLR( vis, 0 );
+      dfs( root );
+      printf( "Case %d: %d shades\n", cas++, d[root] );
     } else {
-      puts( "oh no" );
+      printf( "Case %d: ERROR\n", cas++ );
     }
   }
   return 0;
