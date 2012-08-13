@@ -159,6 +159,18 @@ bool enclose_tri( int i, int j ) {
   return enclose( tri[i][0], tri[i][1], tri[i][2], tri[j][0], tri[j][1], tri[j][2] );
 }
 
+int hd[N], nt[N], to[N], p[N], root = 0, en;
+
+void init() {
+  CLR( hd, -1 );
+  CLR( nt, -1 );
+  root = 0;
+  en = 0;
+}
+
+void add ( int a, int b ) {
+}
+
 bool sweep() {
   // event queue
   int q[N * 3 * 2], qn = 0;
@@ -254,7 +266,7 @@ bool sweep() {
 int main() {
   while ( scanf( "%d", &n ), n >= 0  ) {
     m = 0;
-    REP( i, n ) {
+    FOE( i, 1, n ) {
       REP ( j, 3 ) tri[i][j].eat();
       sort( tri[i], tri[i] + 3, comp_pnt );
       if ( Ccw( tri[i][0], tri[i][1], tri[i][2] ) ) {
