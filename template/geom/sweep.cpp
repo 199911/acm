@@ -75,7 +75,25 @@ bool Ccw( P a, P b, P c ) {
   return ( ( b - a ) ^ ( c - a ) ) > EPS;
 }
 
+bool ccw( P a, P b, P c ) {
+  return ( ( b - a ) ^ ( c - a ) ) > -EPS;
+}
+
+bool btw( P a, P b, P c ) {
+  double s = (b - a) * (c - a);
+  return feq( (b - a) ^ (c - a), 0.0 ) && s >= -EPS && s <= (c - a).mag2() + EPS;
+}
+
 #define N 111111
+
+bool intersect( P a, P b, P c, P d ) {
+  if ( feq( (b - a) ^ (d - c), 0.0 ) ) 
+    return btw( a, c, b ) || btw( a, d, b ) || btw( c, a, d ) || btw ( c, b, d );
+  double s = ((c - a) ^ (d - c)) / ((b - a) ^ (d - c));
+  double t = ((a - c) ^ (b - a)) / ((d - c) ^ (b - a));
+  if ( fle( 0.0, s ) && fle( s, 1.0 ) && fle( 0.0, t ) && fle( t, 1.0 ) ) return true;
+  return false;
+}
 
 double curY;
 
@@ -118,23 +136,39 @@ struct comp_edg {
   }
 };
 
+bool enclose_1 ( P a, P b, P c, P d ) {
+  if ( !Ccw( a, b, c )) swap( a, b );
+  return ccw( a, b, d ) && ccw( b, c, d ) && ccw ( c, a, d );
+}
+
+bool enclose( P ta, P tb, P tc, P sa, P sb, P sc ) {
+  return enclose_1( ta, tb, tc, sa ) && enclose_1( ta, tb, tc, sb ) && enclose_1( ta, tb, tc, sc );
+}
+
 set<int, comp_edg> T;
 typedef set<int, comp_edg>::iterator SIT;
 
 SIT pred( SIT it ) { return it == T.begin() ? it : --it; }
-SIT 
+SIT succ( SIT it ) { return it == T.end() ? it : ++it; } 
 
 // INPUT 
 P tri[N][3];
 int n, m;
 
-void sweep() {
+bool enclose_tri( int i, int j ) {
+  return enclose( tri[i][0], tri[i][1], tri[i][2], tri[j][0], tri[j][1], tri[j][2] );
+}
+
+bool sweep() {
   // event queue
   int q[N * 3 * 2], qn = 0;
+  bool fl[N], ok = 1;
   FOE( i, 1, m ) {
     q[qn++] = i;
     q[qn++] = -i;
   }
+
+  REP( i, n ) fl[i] = 0;
 
   sort( q, q + qn, comp_evt );
 
@@ -152,10 +186,69 @@ void sweep() {
     if ( q[i] > 0 ) {
       // insert segments 
       SIT it = T.insert( q[i] ).first;
+      SIT pit = pred( it ), sit = succ( it );
+
+      E cur = ed[*it];
+
+      // see if there is intersection
+      if ( pit != it && ed[*pit].tid != cur.tid ) {
+        E ped = ed[*pit];
+        if ( intersect( ped.a, ped.b, cur.a, cur.b ) ) {
+         ok = 0;
+         /*
+         printf( "intersect:" );
+         ped.a.out();
+         ped.b.out();
+         cur.a.out();
+         cur.b.out();
+         printf( "(%d, %d)\n", ped.tid, cur.tid);
+         */
+        } else {
+        }
+      }
+
+      if ( sit != T.end() && ed[*sit].tid != cur.tid ) {
+        E sed = ed[*sit];
+        if ( intersect( sed.a, sed.b, cur.a, cur.b ) ) {
+          ok = 0;
+          /*
+          printf( "intersect:" );
+          sed.a.out();
+          sed.b.out();
+          cur.a.out();
+          cur.b.out();
+          printf( "(%d, %d)\n", sed.tid, cur.tid );
+          */
+        } else {
+        }
+      }
+
     } else {
+      SIT it = T.find( -q[i] );
+      SIT pit = pred( it ), sit = succ( it );
+
+      E cur = ed[*it];
+
+      if ( pit != it && sit != T.end() && ed[*sit].tid != ed[*pit].tid ) {
+        E ped = ed[*pit], sed = ed[*sit];
+        if ( intersect( ped.a, ped.b, sed.a, sed.b ) ) {
+          ok = 0;
+          /*
+          printf( "intersect(%d,%d):", *pit, *sit );
+          ped.a.out();
+          ped.b.out();
+          sed.a.out();
+          sed.b.out();
+          printf( "(%d, %d)\n", ped.tid, sed.tid);
+          */
+        }
+      }
+
+      T.erase( it );
     }
   }
 
+  return ok;
 }
 
 int main() {
@@ -164,8 +257,6 @@ int main() {
     REP( i, n ) {
       REP ( j, 3 ) tri[i][j].eat();
       sort( tri[i], tri[i] + 3, comp_pnt );
-      REP( j, 3 ) tri[i][j].out();
-      puts( "" );
       if ( Ccw( tri[i][0], tri[i][1], tri[i][2] ) ) {
         ed[++m] = E( tri[i][0], tri[i][1], 0, i );
         ed[++m] = E( tri[i][1], tri[i][2], 0, i );
@@ -176,7 +267,11 @@ int main() {
         ed[++m] = E( tri[i][0], tri[i][2], 0, i );
       }
     }
-    sweep();
+    if ( sweep() ) {
+      puts( "haha" );
+    } else {
+      puts( "oh no" );
+    }
   }
   return 0;
 }
