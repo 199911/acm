@@ -47,7 +47,7 @@ struct P {
 	LL x, y;
 	P() {}
 	P( LL x, LL y ): x(x), y(y) {}
-	void eat() { scanf( "%lld%lld", &x, &y ); }
+	void eat() { scanf( "%I64d%I64d", &x, &y ); }
 
 	P operator+( P p ) { return P( x + p.x, y + p.y ); }
 	P operator-( P p ) { return P( x - p.x, y - p.y ); }
@@ -55,9 +55,9 @@ struct P {
 	LL operator*( P p ) { return x * p.x + y * p.y; }
 	LL operator^( P p ) { return x * p.y - y * p.x; }
   bool operator<( const P p ) const { return x != p.x ? x < p.x : y < p.y; }
-  bool operator==( const P p ) const { return feq( x, p.x ) && feq( y, p.y ); }
+  bool operator==( const P p ) const { return x == p.x &&  y == p.y; }
 
-	double mag() { return sqrt( x * x + y * y ); }
+	double mag() { return sqrt( (double)( x * x + y * y) ); }
 	LL mag2() { return x * x + y * y; }
 
 	P nor() { return * this * ( 1.0 / mag() ); }
@@ -91,22 +91,18 @@ struct E {
   E( P c, LL r, int cid, bool open ): c(c), r(r), cid(cid), open(open) {}
 
   double getX( LL curY ) const {
-//    printf( "curY = %lld, r = %lld\n", curY, r ); 
-    double t = sqrt( r * r - (curY - c.y) * (curY - c.y) );
+    double t = sqrt( SQR(r) - SQR(curY - c.y) + EPS );
     double x = open ? c.x - t : c.x + t;
-//    printf( "x = %lf\n", x );
-    return open ? c.x - t : c.x + t;
+    return x;
   }
 
   bool operator<( const E &e ) const {
     double s = getX( curY ), t = e.getX( curY );
-    if ( s != t ) return s < t;
-    if ( open != e.open ) return open;
-    return r > e.r;
+    return s < t - EPS || s < t + EPS && open > e.open;
   }
 };
 
-#define N 50010
+#define N 55555
 
 P C[N];
 LL R[N], V[N];
@@ -134,6 +130,7 @@ void init() {
 }
 
 void add( int a, int b ) {
+//  printf( "add %d %d\n", a, b );
   to[en] = b; nt[en] = hd[a]; p[b] = a; hd[a] = en++;
 }
 
@@ -144,7 +141,6 @@ bool enclose( P a, LL ra, P b, LL rb ) {
 }
 
 bool enclose_idx( int a, int b ) {
-//  if ( a <= 0 || a > n || b <= 0 || b > n || a == b ) while ( 1 );
   return enclose( C[a], R[a], C[n], R[b] );
 }
 
@@ -166,38 +162,32 @@ void sweep() {
   T.clear();
 
   REP( i, m ) {
-//    printf( "i = %d\n", i );
     if ( q[i] > 0 ) {
-      P ref = C[q[i]] + P( 0.0, 1.0 ) * R[q[i]];
       E e1 = E( C[q[i]], R[q[i]], q[i], 1), e2 = E( C[q[i]], R[q[i]], q[i], 0 );
 
-      curY = ref.y;
+      curY = C[q[i]].y + R[q[i]];
 
-      SIT cit = T.insert( e1 ).first, ccit = T.insert( e2 ).first;
-      SIT pit = pred( cit );
+      SIT pit = T.lower_bound( e1 );
 
-      if ( pit == cit ) {
-        add( root, cit->cid );
+      if ( pit == T.end() ) {
+        add( root, q[i] );
       } else {
-        if ( enclose_idx( pit->cid, cit->cid ) ) {
-          add( pit->cid, cit->cid );
+        if ( !pit->open ) {
+          add( pit->cid, q[i] );
         } else {
-          add( p[pit->cid], cit->cid );
+          add( p[pit->cid], q[i] );
         }
       }
-    } else {
-      P ref = C[-q[i]] - P( 0.0, 1.0 ) * R[-q[i]];
-      E e1 = E( C[-q[i]], R[-q[i]], -q[i], 1), e2 = E( C[-q[i]], R[-q[i]], -q[i], 0 );
 
-      curY = ref.y;
+      T.insert( e1 );
+      T.insert( e2 ); 
+    } else if ( q[i] < 0 ) {
+      E e1 = E( C[-q[i]], R[-q[i]], -q[i], 1), e2 = E( C[-q[i]], R[-q[i]], -q[i], 0 );
+      curY = C[-q[i]].y - R[-q[i]];
 
       SIT cit = T.find( e1 ), ccit = T.find( e2 );
-      
-      if ( cit == T.end() || ccit == T.end() ) while ( 1 );
-
-      T.erase( cit );
-      T.erase( ccit );
-    }
+      T.erase( cit ), T.erase( ccit );
+    } 
   }
 }
 
@@ -278,17 +268,15 @@ int main() {
     scanf( "%d%d", &n, &k );
     FOE( i, 1, n ) {
       C[i].eat(); 
-      scanf( "%lld%lld", &R[i], &V[i] );
+      scanf( "%I64d%I64d", &R[i], &V[i] );
     }
 
     sweep();
 
-//    printf( "done\n" );
-
     ans = 0;
     dfs( root );
 
-    printf( "Case %d: %lld\n", cas, ans );
+    printf( "Case %d: %I64d\n", cas, ans );
   }
 	return 0;
 }

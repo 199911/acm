@@ -120,15 +120,6 @@ struct E {
   }
 } ed[N * 3];
 
-bool comp_evt( const int &a, const int &b ) {
-  P pa = a > 0 ? ed[a].a : ed[-a].b, pb = b > 0 ? ed[b].a : ed[-b].b;
-  if ( !feq( pa.y, pb.y ) ) return pa.y > pb.y; 
-  if ( a > 0 ^ b > 0 ) return a > 0;
-  if ( !feq( pa.x, pb.x ) ) return pa.x < pb.x;
-  if ( a > 0 ) return ( ( ed[a].b - ed[a].a ) ^ ( ed[b].b - ed[b].a ) ) > EPS;
-  else return ( (ed[-a].a - ed[-a].b ) ^ ( ed[-b].a - ed[-a].b ) ) < -EPS;
-}
-
 struct comp_edg {
   bool operator() ( const int &a, const int &b ) {
     return ed[a] < ed[b];
@@ -144,15 +135,15 @@ bool enclose( P ta, P tb, P tc, P sa, P sb, P sc ) {
   return enclose_1( ta, tb, tc, sa ) && enclose_1( ta, tb, tc, sb ) && enclose_1( ta, tb, tc, sc );
 }
 
-set<int, comp_edg> T;
-typedef set<int, comp_edg>::iterator SIT;
+set<E> T;
+typedef set<E>::iterator SIT;
 
 SIT pred( SIT it ) { return it == T.begin() ? it : --it; }
 SIT succ( SIT it ) { return it == T.end() ? it : ++it; } 
 
 // INPUT 
 P tri[N][3];
-int n, m;
+int tp[N], n, m;
 
 bool enclose_tri( int i, int j ) {
   return enclose( tri[i][0], tri[i][1], tri[i][2], tri[j][0], tri[j][1], tri[j][2] );
@@ -163,7 +154,7 @@ int hd[N], nt[N], to[N], p[N], root = 0, en;
 void init() {
   CLR( hd, -1 );
   CLR( nt, -1 );
-  root = 0;
+  root = n;
   en = 0;
 }
 
@@ -171,109 +162,101 @@ void add( int a, int b ) {
   to[en] = b; nt[en] = hd[a]; hd[a] = en++; p[b] = a;
 }
 
+bool comp_evt( const int &a, const int &b ) {
+  P pa = tri[a / 3][a % 3], pb = tri[b / 3][b % 3]; 
+  return pa.y == pb.y ? pa.x < pb.x : pa.y > pb.y;
+}
+
 bool sweep() {
-  // event queue
-  int q[N * 3 * 2], qn = 0;
-  bool fl[N];
-  FOE( i, 1, m ) {
-    q[qn++] = i;
-    q[qn++] = -i;
-  }
+  int q[N * 3];
 
-  T.clear();
+  REP( i, n * 3 ) 
+    q[i] = i;
+  sort( q, q + 3 * n, comp_evt );
+
   init();
-  CLR( fl, 0 );
+  T.clear();
 
-  sort( q, q + qn, comp_evt );
+  REP( evt, 3 * n ) {
+    int t = q[evt] / 3, v = q[evt] % 3;
+    curY = tri[t][v].y;
 
-#ifdef DEBUG
-  REP( i, qn ) {
-    printf( "%s(%d): ", q[i] > 0 ? "insert" : "remove", q[i] );
-    ed[abs(q[i])].a.out(); 
-    ed[abs(q[i])].b.out(); 
-    printf( " %d ", ed[abs(q[i])].tid );
-    puts( "" );
-  }
-#endif
+    if ( v == 0 ) { // top vertex
+      E e1 = ed[t * 3], e2 = ed[t * 3 + 2]; 
+      if ( ( (e1.b - e1.a) ^ (e2.b - e2.a)) < -EPS ) swap(e1, e2);
+      SIT cit = T.insert( e1 ).first;
+      SIT ccit = T.insert( e2 ).first;
+      SIT pit = pred( cit );
+      SIT sit = succ( ccit );
 
-  REP( i, qn ) {
-    if ( q[i] > 0 ) {
-      curY = ed[q[i]].a.y;
-      // printf( "curY = %lf\n", curY );
-      // insert segments 
-      SIT it = T.insert( q[i] ).first;
-      SIT pit = pred( it ), sit = succ( it );
-      
-      E cur = ed[*it];
+      pit = pred( cit );
+      sit = succ( sit );
+      if ( pit != cit && pit->tid != cit->tid && intersect( pit->a, pit->b, cit->a, cit->b ) ) 
+        return 0;
+      if ( sit != T.end() && sit->tid != cit->tid && intersect( sit->a, sit->b, cit->a, cit->b ) ) 
+        return 0;
 
-#ifdef DEBUG
-      printf( "curY = %f\n", curY );
-      printf("insert: ");
-      cur.a.out();
-      cur.b.out();
-      printf( "(%d)\n", cur.open );
+      pit = pred( ccit );
+      sit = succ( ccit );
+      if ( pit != ccit && pit->tid != ccit->tid && intersect( pit->a, pit->b, ccit->a, ccit->b ) ) 
+        return 0;
+      if ( sit != T.end() && sit->tid != ccit->tid && intersect( sit->a, sit->b, ccit->a, ccit->b ) ) 
+        return 0;
 
-      for( SIT iter = T.begin(); iter != T.end(); iter++ ) {
-        E x = ed[*iter];
-        printf( "[" );
-        x.a.out(); x.b.out(); 
-        printf( "(%.1f)", x.getX(curY));
-        
-        printf( "]" );
-      }
-      puts( "" );
-#endif
-
-      // see if there is intersection
-      if ( pit != it && ed[*pit].tid != cur.tid ) {
-        E ped = ed[*pit];
-        if ( intersect( ped.a, ped.b, cur.a, cur.b ) ) return 0; 
-      }
-
-      if ( sit != T.end() && ed[*sit].tid != cur.tid ) {
-        E sed = ed[*sit];
-        if ( intersect( sed.a, sed.b, cur.a, cur.b ) ) 
-          return 0;
-      }
-
-      if ( !fl[cur.tid] ) {
-        if ( pit == it ) {
-          add( root, cur.tid );
+      pit = pred( cit );
+      if ( pit == cit  ) {
+        add( root, cit->tid ); 
+      } else {
+        if ( enclose_tri( pit->tid, cit->tid ) ) {
+          add( pit->tid, cit->tid );
         } else {
-          if ( enclose_tri( ed[*pit].tid, ed[*it].tid ) ) {
-            add( ed[*pit].tid, cur.tid );
-          } else {
-            add( p[ed[*pit].tid], cur.tid );
-          }
+          add( p[pit->tid], cit->tid );
         }
       }
+    } else if ( v == 1 ) {  // transition vertex
+      E e1 = ed[t * 3], e2 = ed[t * 3 + 1];
+      // error checking
+      SIT cit = T.find( e1 );
+      SIT pit = pred( cit ), sit = succ( cit );
+      if ( pit != cit && sit != T.end() && pit->tid != sit->tid && intersect( pit->a, pit->b, sit->a, sit->b ) ) 
+        return 0;
+      T.erase( cit );
+      
+      cit = T.insert( e2 ).first;
+      
+      pit = pred( cit );
+      sit = succ( cit );
 
-      fl[cur.tid] = 1;
+      if ( pit != cit && pit->tid != cit->tid && intersect( pit->a, pit->b, cit->a, cit->b ) ) 
+        return 0;
+      if ( sit != T.end() && sit->tid != cit->tid && intersect( sit->a, sit->b, cit->a, cit->b ) )
+        return 0;
+    } else  {   // bottom vertex
+      E e1 = ed[t * 3 + 1], e2 = ed[t * 3 + 2]; 
 
-    } else {
-      curY = ed[-q[i]].b.y;
-      SIT it = T.find( -q[i] );
-      if ( it == T.end() ) while ( 1 );
-      SIT pit = pred( it ), sit = succ( it );
+      SIT cit = T.find( e1 ), ccit = T.find( e2 );
 
-      E cur = ed[*it];
+      if ( cit == T.end() || ccit == T.end() ) while ( 1 );
 
-#ifdef DEBUG
-      printf( "curY = %f\n", curY );
-      printf( "remove: " );
-      cur.a.out();
-      cur.b.out();
-      printf( "(%d)\n", cur.open );
-#endif
+      SIT pit = pred( cit ), sit = succ( cit );
 
-      if ( pit != it && sit != T.end() && ed[*sit].tid != ed[*pit].tid ) {
-        E ped = ed[*pit], sed = ed[*sit];
-        if ( intersect( ped.a, ped.b, sed.a, sed.b ) ) 
-          return 0;
-      }
+      if ( pit != cit && pit->tid != cit->tid && intersect( pit->a, pit->b, cit->a, cit->b ) ) 
+        return 0;
+      if ( sit != T.end() && sit->tid != cit->tid && intersect( sit->a, sit->b, cit->a, cit->b ) ) 
+        return 0;
 
-      T.erase( it );
+      pit = pred( ccit );
+      sit = succ( ccit );
+
+      if ( pit != ccit && pit->tid != ccit->tid && intersect( pit->a, pit->b, ccit->a, ccit->b ) ) 
+        return 0;
+      if ( sit != T.end() && sit->tid != ccit->tid && intersect( sit->a, sit->b, ccit->a, ccit->b ) ) 
+        return 0;
+
+      T.erase( cit );
+      T.erase( ccit );
     }
+
   }
 
   return 1;
@@ -301,17 +284,21 @@ int main() {
   int cas = 1;
   while ( scanf( "%d", &n ), n >= 0  ) {
     m = 0;
-    FOE( i, 1, n ) {
+    REP( i, n ) {
       REP ( j, 3 ) tri[i][j].eat();
       sort( tri[i], tri[i] + 3, comp_pnt );
       if ( Ccw( tri[i][0], tri[i][1], tri[i][2] ) ) {
-        ed[++m] = E( tri[i][0], tri[i][1], 1, i );
-        ed[++m] = E( tri[i][1], tri[i][2], 2, i );
-        ed[++m] = E( tri[i][0], tri[i][2], 0, i );
+        // two left, one right
+        tp[i] = 0;
+        ed[m++] = E( tri[i][0], tri[i][1], 1, i );
+        ed[m++] = E( tri[i][1], tri[i][2], 2, i );
+        ed[m++] = E( tri[i][0], tri[i][2], 0, i );
       } else {
-        ed[++m] = E( tri[i][0], tri[i][1], 1, i );
-        ed[++m] = E( tri[i][1], tri[i][2], 0, i );
-        ed[++m] = E( tri[i][0], tri[i][2], 2, i );
+        // one left two right
+        tp[i] = 1;
+        ed[m++] = E( tri[i][0], tri[i][1], 1, i );
+        ed[m++] = E( tri[i][1], tri[i][2], 0, i );
+        ed[m++] = E( tri[i][0], tri[i][2], 2, i );
       }
     }
     if ( sweep() ) {
