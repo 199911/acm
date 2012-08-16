@@ -20,13 +20,13 @@
 using namespace std;
 
 #define FOR(i,a,b) for (int i = (a); i < (b); i++)
-#define ABS(a) ((a)>0?(a):-(a))
+#define ABS(a) ( (a) >= 0LL ? (a) : -(a) )
 #define FOE(i,a,b) for (int i = (a); i <= (b); i++)
 #define FR(i,e) for(__typeof(e.begin()) i = e.begin(); x != e.end(); i++)
 #define SQR(x) ((x)*(x))
 #define REP(i,n) FOR(i,0,n)
 #define CLR(a,b) memset(a, b, sizeof(a))
-#define INF (1<<30)
+#define INF (1LL<<40)
 #define LL long long
 #define ULL unsigned long long
 #define PII pair<int,int>
@@ -47,7 +47,7 @@ struct P {
 	LL x, y;
 	P() {}
 	P( LL x, LL y ): x(x), y(y) {}
-	void eat() { scanf( "%lld%lld", &x, &y ); }
+	void eat() { scanf( "%I64d%I64d", &x, &y ); }
 
 	P operator+( P p ) { return P( x + p.x, y + p.y ); }
 	P operator-( P p ) { return P( x - p.x, y - p.y ); }
@@ -55,9 +55,9 @@ struct P {
 	LL operator*( P p ) { return x * p.x + y * p.y; }
 	LL operator^( P p ) { return x * p.y - y * p.x; }
   bool operator<( const P p ) const { return x != p.x ? x < p.x : y < p.y; }
-  bool operator==( const P p ) const { return feq( x, p.x ) && feq( y, p.y ); }
+  bool operator==( const P p ) const { return x == p.x &&  y == p.y; }
 
-	double mag() { return sqrt( x * x + y * y ); }
+	double mag() { return sqrt( (double)( x * x + y * y) ); }
 	LL mag2() { return x * x + y * y; }
 
 	P nor() { return * this * ( 1.0 / mag() ); }
@@ -79,49 +79,43 @@ bool Ccw( P a, P b, P c ) {
   return fgt( area( a, b, c ), 0.0 );
 }
 
+#define N 55555
+
+P C[N];
+LL R[N], V[N];
+int n, K;
 LL curY;
 
 struct E {
-  P c;
-  LL r;
   int cid;
   bool open;
 
   E() {}
-  E( P c, LL r, int cid, bool open ): c(c), r(r), cid(cid), open(open) {}
+  E( int cid, bool open ): cid(cid), open(open) {}
 
-  double getX( LL curY ) const {
-//    printf( "curY = %lld, r = %lld\n", curY, r ); 
-    double t = sqrt( r * r - (curY - c.y) * (curY - c.y) );
+  double getX( LL now ) const {
+    P c = C[cid]; 
+    LL r = R[cid];
+    
+    double t = sqrt( SQR(r) - SQR(now - c.y) + EPS );
     double x = open ? c.x - t : c.x + t;
-//    printf( "x = %lf\n", x );
-    return open ? c.x - t : c.x + t;
+    return x;
   }
 
   bool operator<( const E &e ) const {
-    double s = getX( curY ), t = e.getX( curY );
-    if ( s != t ) return s < t;
-    if ( open != e.open ) return open;
-    return r > e.r;
+    double x1 = getX( curY ), x2 = e.getX( curY );
+    return x1 < x2 - EPS || x1 < x2 + EPS && open > e.open;
   }
 };
 
-#define N 50010
-
-P C[N];
-LL R[N], V[N];
-int n, k;
 
 bool comp_evt( const int &a, const int &b ) {
-  P d = P( 0.0, 1.0 );
-  P pa = a > 0 ? C[a] + d * R[a] : C[-a] - d * R[-a];
-  P pb = b > 0 ? C[b] + d * R[b] : C[-b] - d * R[-b];
+  LL ya, yb;
+  ya = a > 0 ? C[a].y + R[a] : C[-a].y - R[-a];
+  yb = b > 0 ? C[b].y + R[b] : C[-b].y - R[-b];
 
-  if ( pa.y != pb.y ) return pa.y > pb.y;
-  if ( a > 0 ^ b > 0 ) return a > 0;
-  if ( pa.x != pb.x ) return pa.x < pb.x;
-  if ( R[abs(a)] != R[abs(b)] ) R[abs(a)] > R[abs(b)];
-  return abs(a) < abs(b);
+  if ( ya != yb ) return ya > yb;
+  return a > b;
 }
 
 int hd[N], nt[N], to[N], p[N], en, root;
@@ -137,132 +131,99 @@ void add( int a, int b ) {
   to[en] = b; nt[en] = hd[a]; p[b] = a; hd[a] = en++;
 }
 
-// a enclose b
-bool enclose( P a, LL ra, P b, LL rb ) {
-  if ( ra <= rb ) return false;
-  return fle( (b - a).mag2(), SQR(ra - rb) );
-}
-
-bool enclose_idx( int a, int b ) {
-//  if ( a <= 0 || a > n || b <= 0 || b > n || a == b ) while ( 1 );
-  return enclose( C[a], R[a], C[n], R[b] );
-}
-
 set<E> T;
 typedef set<E>::iterator SIT;
 
-SIT pred( SIT it ) { return it == T.begin() ? it : --it; }
-SIT succ( SIT it ) { return it == T.end() ? it : ++it; }
-
 void sweep() {
   int q[N * 2], m = 0;
+
+  curY = 1LL << 40;
+
   FOE( i, 1, n ) {
     q[m++] = i;
     q[m++] = -i;
   }
 
   sort( q, q + m, comp_evt );
+
   init();
   T.clear();
 
   REP( i, m ) {
-//    printf( "i = %d\n", i );
     if ( q[i] > 0 ) {
-      P ref = C[q[i]] + P( 0.0, 1.0 ) * R[q[i]];
-      E e1 = E( C[q[i]], R[q[i]], q[i], 1), e2 = E( C[q[i]], R[q[i]], q[i], 0 );
+      int v = q[i];
+      E e1 = E( v, 1 ), e2 = E( v, 0 );
+      LL nxt = C[v].y + R[v];
+      curY = nxt;
 
-      curY = ref.y;
+      SIT pit = T.lower_bound( e1 );
 
-      SIT cit = T.insert( e1 ).first, ccit = T.insert( e2 ).first;
-      SIT pit = pred( cit );
-
-      if ( pit == cit ) {
-        add( root, cit->cid );
+      if ( pit == T.end() ) {
+        add( root, q[i] );
       } else {
-        if ( enclose_idx( pit->cid, cit->cid ) ) {
-          add( pit->cid, cit->cid );
+        if ( !pit->open ) {
+          add( pit->cid, q[i] );
         } else {
-          add( p[pit->cid], cit->cid );
+          add( p[pit->cid], q[i] );
         }
       }
-    } else {
-      P ref = C[-q[i]] - P( 0.0, 1.0 ) * R[-q[i]];
-      E e1 = E( C[-q[i]], R[-q[i]], -q[i], 1), e2 = E( C[-q[i]], R[-q[i]], -q[i], 0 );
 
-      curY = ref.y;
+      T.insert( e1 );
+      T.insert( e2 ); 
+
+    } else if ( q[i] < 0 ) {
+      int v = -q[i];
+      E e1 = E( v, 1 ), e2 = E( v, 0 );
+      LL nxt = C[v].y - R[v];
+      curY = nxt;
 
       SIT cit = T.find( e1 ), ccit = T.find( e2 );
-      
-      if ( cit == T.end() || ccit == T.end() ) while ( 1 );
-
-      T.erase( cit );
+      T.erase( cit ); 
       T.erase( ccit );
-    }
+    } 
   }
 }
 
 LL ans = 0;
-LL *mi[N], *ma[N], sma[N], smi[N];
-int dp[N], sz[N];
+LL *mi[N], *ma[N];
+int sz[N];
 
 void dfs( int x ) {
-  dp[x] = 0;
-  if ( x != root ) sma[x] = smi[x] = V[x];
-  else sma[x] = -INF, smi[x] = INF;
-
+  sz[x] = 1;
   for ( int e = hd[x]; e != -1; e = nt[e] ) {
     dfs( to[e] );
-    dp[x] = max( dp[to[e]] + 1, dp[x] );
-    sma[x] = max( sma[x], sma[to[x]] );
-    smi[x] = min( smi[x], smi[to[x]] );
+    sz[x] = max( sz[x], sz[to[e]] + 1 );
   }
 
-  if ( x != root ) {
-    ans = max( ans, V[x] - smi[x] );
-    ans = max( ans, sma[x] - V[x] );
-  }
+  if ( sz[x] > K + 1) sz[x] = K + 1;
 
-  sz[x] = min( k, dp[x] ) + 1;
-
-  mi[x] = (LL *) malloc( sz[x] * sizeof( LL ) );
-  ma[x] = (LL *) malloc( sz[x] * sizeof( LL ) );
+  ma[x] = ( LL * ) malloc ( sz[x] * sizeof( LL ) );
+  mi[x] = ( LL * ) malloc ( sz[x] * sizeof( LL ) );
 
   if ( x == root ) {
-    mi[x][0] = INF; 
-    ma[x][0] = -INF;
+    REP( i, sz[x] ) {
+      mi[x][i] = INF; 
+      ma[x][i] = -INF;
+    }
   } else {
-    mi[x][0] = ma[x][0] = V[x];
+    REP( i, sz[x] ) mi[x][i] = ma[x][i] = V[x];
   }
 
-  FOR( i, 1, sz[x] ) {
-    mi[x][i] = mi[x][i - 1];
-    ma[x][i] = ma[x][i - 1];
-
-    for ( int e = hd[x]; e != -1; e = nt[e] ) {
-      if ( i - 1 < sz[to[e]] ) {
-        mi[x][i] = min( mi[x][i], mi[to[e]][i - 1] );
-        ma[x][i] = max( ma[x][i], ma[to[e]][i - 1] );
-      }
+  for ( int e = hd[x]; e != -1; e = nt[e] ) {
+    int y = to[e];
+    for ( int i = 1; i < min( sz[y] + 1, sz[x] ); i++ ) {
+      if ( mi[x][i] > mi[y][i - 1] ) mi[x][i] = mi[y][i - 1]; 
+      if ( ma[x][i] < ma[y][i - 1] ) ma[x][i] = ma[y][i - 1]; 
     }
   }
 
-#ifdef DEBUG
+  REP( i, sz[x] - 1 ) {
+    if ( ma[x][i] > ma[x][i + 1] ) ma[x][i + 1] = ma[x][i];
+    if ( mi[x][i] < mi[x][i + 1] ) mi[x][i + 1] = mi[x][i];
+  }
+
   REP( i, sz[x] ) {
-    printf( "ma[%d][%d] = %d\n ", x, i, ma[x][i] );
-    printf( "mi[%d][%d] = %d\n ", x, i, mi[x][i] );
-  }
-#endif
-
-  if ( x == root ) {
-    FOR( i, 1, k ) {
-      int p = min( sz[x] - 1, i ), q = min( sz[x] - 1, k - i );
-      ans = max( ans, ma[x][p] - mi[x][q] );
-    }
-  } else {
-    FOE( i, 0, k ) {
-      int p = min( sz[x] - 1, i ), q = min( sz[x] - 1, k - i );
-      ans = max( ans, ma[x][p] - mi[x][q] );
-    }
+    ans = max( ans, ma[x][i] - mi[x][min( sz[x] - 1, K - i)] );
   }
 
   for ( int e = hd[x]; e != -1; e = nt[e] ) {
@@ -275,20 +236,18 @@ int main() {
   int Cas;
   scanf( "%d", &Cas );
   FOE( cas, 1, Cas ) {
-    scanf( "%d%d", &n, &k );
+    scanf( "%d%d", &n, &K );
     FOE( i, 1, n ) {
       C[i].eat(); 
-      scanf( "%lld%lld", &R[i], &V[i] );
+      scanf( "%I64d%I64d", &R[i], &V[i] );
     }
 
     sweep();
 
-//    printf( "done\n" );
-
     ans = 0;
     dfs( root );
 
-    printf( "Case %d: %lld\n", cas, ans );
+    printf( "Case %d: %I64d\n", cas, ans );
   }
 	return 0;
 }

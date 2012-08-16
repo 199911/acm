@@ -35,5 +35,6 @@ using namespace std;
 #define gmax(a,b) { if ( b > a ) a = b; }
 
 int main() {
+  set<int> S;
   return 0;
 }
