@@ -11,6 +11,7 @@
 #include <utility>
 #include <list>
 #include <set>
+#include <map>
 #include <queue>
 #include <stack>
 #include <iostream>
@@ -34,7 +35,6 @@ using namespace std;
 #define gmin(a,b) { if ( b < a ) a = b; }
 #define gmax(a,b) { if ( b > a ) a = b; }
 
-
 #define EPS 1e-9
 #define feq(a,b) (fabs((a)-(b))<EPS)
 #define fgt(a,b) ((a)>(b)+EPS)
@@ -47,13 +47,14 @@ struct P {
   P() {}
   P( double x, double y ): x(x), y(y) {}
   void eat() { scanf( "%lf%lf", &x, &y ); }
-  void out() { printf( "(%f, %f)", x, y ); }
+  void out() { printf( "(%.1f, %.1f)", x, y ); }
 
   P operator+( P p ) { return P( x + p.x, y + p.y ); }
   P operator-( P p ) { return P( x - p.x, y - p.y ); }
   P operator*( double s ) { return P( x * s, y * s ); }
   double operator*( P p ) { return x * p.x + y * p.y; }
   double operator^( P p ) { return x * p.y - y * p.x; }
+  bool operator<( const P &p ) const { return feq( x, p.x ) ? flt( y, p.y ) : flt( x, p.x ); }
 
   double mag() { return sqrt( x * x + y * y ); }
   double mag2() { return x * x + y * y; }
@@ -63,7 +64,7 @@ struct P {
   P rot() { return P( -y, x ); }
   P rot( double si, double co ) { return P( x * co - y * si, x * si + y * co ); }
   P rot( double th ) { return rot( sin( th ), cos( th ) ); }
-} V[N];
+};
 
 double area( P a, P b, P c ) {
   return 0.5 * ( ( b - a ) ^ ( c - a ) );
@@ -73,22 +74,27 @@ bool ccw( P a, P b, P c ) {
   return fge( area(a, b, c), 0.0 );
 }
 
-int hd[N], to[M], nt[M], n, m;        // graph structure
-int ne[M], pe[M], oc[F], fn;
+#define N 111
+#define M ( 2 * N * N ) 
+#define F M
+
+int hd[M], to[M], nt[M], n, m;        // graph structure
+int ne[M], pe[M], oc[F], ec[F], fn;
 double fa[F];
+P V[M];
 
 void init(){
   memset(hd, -1, sizeof(hd));
   memset(nt, -1, sizeof(nt));
   memset(ne, -1, sizeof(ne));
   memset(nt, -1, sizeof(nt));
+  n = 0;
   m = 0;
   fn = 0;
 }
 
 void add(int a, int b) {
   // becareful not to create redundant edges
-  if( a > b ) return;
   to[m] = b; nt[m] = hd[a]; hd[a] = m++;
   to[m] = a; nt[m] = hd[b]; hd[b] = m++;
 }
@@ -108,39 +114,10 @@ bool comp(const int &x, const int &y) {
   }
 }
 
-void build_slow() {
-  // build next/prev edge link
-  // O(mn) create link
-  REP(i, m ) {
-    // edge (u, v)
-    int u = to[(i^1)], v = to[i];
-    for(int e = hd[v]; e != -1; e = nt[e]) {
-      if( to[e] == u )  continue; 
-      if( ne[i] == -1 ) {
-        ne[i] = e; pe[e] = i;
-      } else {
-        if( ccw(V[u], V[v], V[to[ne[i]]]) ) {
-          if( ccw(V[u], V[v], V[to[e]]) && ccw(V[v], V[to[ne[i]]], V[to[e]]) ) {
-            ne[i] = e; pe[e] = i;
-          }
-        } else {
-          if( ccw(V[u], V[v], V[to[e]]) || ccw(V[v], V[to[ne[i]]], V[to[e]]) ) {
-            ne[i] = e; pe[e] = i;
-          }
-        }
-      }
-    }
-    if( ne[i] == -1 ){
-      ne[i] = i^1;
-      pe[i^1] = i;
-    }
-  }
-}
-
 void build() {
   // O( m log n ) create link
   REP(v, n) {
-    int a[N], k = 0;
+    int a[M], k = 0;
     for( int e = hd[v]; e != -1; e = nt[e] ) {
       int u = to[e];
       a[k++] = e;
@@ -148,7 +125,7 @@ void build() {
     piv = v;
     sort(a, a + k, comp);
     REP(i, k) {
-      ne[a[i]^1] = a[(i + k - 1 )% k];
+      ne[a[i]^1] = a[(i + k - 1)% k];
       pe[ne[a[i]^1]] = a[i]^1;
     }
   }
@@ -160,7 +137,9 @@ void build() {
     if( !us[i] ) {
       fa[fn] = 0;
       oc[fn] = i;
+      ec[fn] = 0;
       for(int p = i; !us[p]; p = ne[p] ) { 
+        ec[fn]++;
         us[p] = true;
         fa[fn] += area( P(0.0, 0.0), V[to[p]], V[to[ne[p]]]);
       }
@@ -169,28 +148,61 @@ void build() {
   }
 }
 
-int main() {
+
+P p[N];
+int pn;
+
+bool float_equal( const double &a, const double &b ) {
+  return feq( a, b );
+}
+
+typedef map<P, int> MPI;
+typedef pair<P, int> PPI;
+
+void build_planar() {
+  MPI mp;
+  mp.clear();
   init();
 
-  scanf( "%d", &n );
-
-  REP( i, n ) {
-    int a, b, dg;
-    scanf( "%d", &a ); 
-    a--;
-
-    V[a].eat();
-
-    scanf( "%d", &dg );
-    REP( j, dg ) {
-      scanf( "%d", &b ); b--;
-      add( a, b );
-    }
+  for ( int i = 0; i < pn; i++ ) { 
+    mp.insert( PPI(p[i], i ) );
+    V[n++] = p[i];
   }
 
-  build();
+  for ( int i = 0; i < pn; i++ ) {
+    double S[N]; 
+    int sn = 0, dn = 0, D[N];
+    P a = V[i], b = V[(i + 1) % pn];
+    for ( int j = 2; j < pn - 1; j++ ) {
+      P c = V[(i + j) % pn], d = V[(i + j + 1) % pn];
+      double s = ((c - a) ^ (d - c)) / ((b - a) ^ (d - c)); 
+      double t = ((a - c) ^ (b - a)) / ((d - c) ^ (b - a));
+      if ( s > EPS && s < 1 - EPS && t > EPS && t < 1 - EPS ) {
+        S[sn++] = s;
+      }
+    }
+    sort( S, S + sn );
+    sn = unique( S, S + sn, float_equal ) - S;
+    D[dn++] = i;
+    for ( int j = 0; j < sn; j++ ) {
+      P nw = a + (b - a) * S[j];
+      MPI::iterator it = mp.find( nw );
+      if ( it == mp.end() ) {
+        mp.insert( PPI( nw, n) );
+        V[n] = nw;
+        D[dn++] = n++;
+      } else {
+        D[dn++] = it->second;
+      }
+    }
+    D[dn++] = (i + 1) % pn;
+    
+    for ( int j = 0; j < dn - 1; j++ ) {
+      add( D[j], D[j + 1] );
+    }
+  }
+}
 
-  printf( "%d\n", fn );
-
+int main() {
   return 0;
 }
