@@ -22,6 +22,8 @@ using namespace std;
 #define flt(a,b) ((a)<(b)-EPS)
 #define fle(a,b) ((a)<(b)+EPS)
 
+const double PI = atan( 1.0 ) * 4;
+
 struct P {
 	double x, y;
 	P() {}
@@ -43,6 +45,7 @@ struct P {
 	P nor() { return * this * ( 1.0 / mag() ); }
 
 	P rot() { return P( -y, x ); }
+	P rrot() { return P( y, -x ); }
 	P rot( double si, double co ) { return P( x * co - y * si, x * si + y * co ); }
 	P rot( double th ) { return rot( sin( th ), cos( th ) ); }
 };
@@ -65,6 +68,82 @@ bool btw( P a, P b, P c ) {
 	return fge( s, 0.0 ) && fle( s, ( c - a ).mag2() );
 }
 
+double r;
+
+P left( P a ) {
+	double len = sqrt( a.mag2() - r * r );
+	double si = r / a.mag(), co = len / a.mag();
+	P ret = ( a.nor() * len ).rot( si, co );
+
+	return ret;
+}
+
+P right( P a ) {
+	double len = sqrt( a.mag2() - r * r );
+	double si = -r / a.mag(), co = len / a.mag();
+	P ret = ( a.nor() * len ).rot( si, co );
+	return ret;
+}
+
+double ang( P a ) {
+	double ans = atan2( a.y, a.x );
+	if ( ans < -EPS ) ans += 2 * PI;
+	return ans;
+}
+
+void exp( P a, P b, P &c, P &d ) {
+	if ( Ccw( P(0.0, 0.0), a, b ) ){
+		c = right( a );
+		d = left( b );
+	} else {
+		c = left( a );
+		d = right( b );
+		swap( c, d );
+	}
+}
+
+typedef pair<double, double> PDD;
+
+#define N 5555
+PDD I[N];
+int m;
+
+
 int main() {
+	int n; 
+	m = 0;
+	scanf( "%d%lf", &n, &r );
+	REP( i, n ) {
+		int k; 
+		P p[55];
+		scanf( "%d", &k );
+		REP( j, k ) p[j].eat();
+		REP( j, k ) {
+			P a, b, c, d;
+			double s, t;
+			a = p[j];
+			b = p[(j + 1) % k];
+			exp( a, b, c, d );
+			s = ang(c);
+			t = ang(d);
+			if ( t < s ) t += 2 * PI;
+			I[m++] = PDD(s, t);
+		}
+	}
+
+	sort( I, I + m );
+
+	double cur = 0.0, le = 0.0;
+	int ok = 1;
+
+	REP( i, m ) {
+		double st = I[i].first, en = I[i].second;
+		if ( st > cur + EPS ) { le = st; ok = 0; }
+		cur = en;
+		if ( ok || en > 2 * PI - EPS && en - 2 * PI > le ) ok = 1;
+	}
+
+	printf("%s\n", !ok ? "Survive!" : "Baffling!" ); 
+
 	return 0;
 }
