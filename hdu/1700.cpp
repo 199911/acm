@@ -35,6 +35,9 @@ using namespace std;
 #define gmin(a,b) { if ( b < a ) a = b; }
 #define gmax(a,b) { if ( b > a ) a = b; }
 
+
+
+
 #define EPS 1e-9
 #define feq(a,b) (fabs((a)-(b))<EPS)
 #define fgt(a,b) ((a)>(b)+EPS)
@@ -63,6 +66,7 @@ struct P {
 	P nor() { return * this * ( 1.0 / mag() ); }
 
 	P rot() { return P( -y, x ); }
+	P rrot() { return P( y, -x ); }
 	P rot( double si, double co ) { return P( x * co - y * si, x * si + y * co ); }
 	P rot( double th ) { return rot( sin( th ), cos( th ) ); }
 };
@@ -85,6 +89,22 @@ bool btw( P a, P b, P c ) {
 	return fge( s, 0.0 ) && fle( s, ( c - a ).mag2() );
 }
 
+double ang( P a ){ 
+  return atan2( a.y, a.x );
+}
+
 int main() {
+  int n;
+  scanf( "%d", &n );
+  const double PI = 4 * atan( 1.0 );
+  REP( i, n ) {
+    P a, b, c;
+    a.eat();
+    b = a * ( -0.5 ) + a.rot() * sqrt( 3 ) * 0.5;
+    c = a * ( -0.5 ) + a.rrot() * sqrt( 3 ) * 0.5;
+
+    if ( b.y > c.y + 0.0005 || b.y > c.y - 0.0005 && b.x > c.x ) swap( b, c );
+    printf( "%.3f %.3f %.3f %.3f\n", b.x, b.y, c.x, c.y );
+  }
 	return 0;
 }

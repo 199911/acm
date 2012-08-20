@@ -126,8 +126,12 @@ int main() {
 			exp( a, b, c, d );
 			s = ang(c);
 			t = ang(d);
-			if ( t < s ) t += 2 * PI;
-			I[m++] = PDD(s, t);
+      if ( t < s - EPS ) {
+        I[m++] = PDD( 0.0, t );
+        I[m++] = PDD( s, 2 * PI );
+      } else {
+        I[m++] = PDD( s, t );
+      }
 		}
 	}
 
@@ -138,12 +142,13 @@ int main() {
 
 	REP( i, m ) {
 		double st = I[i].first, en = I[i].second;
-		if ( st > cur + EPS ) { le = st; ok = 0; }
-		cur = en;
-		if ( ok || en > 2 * PI - EPS && en - 2 * PI > le ) ok = 1;
+    if( st > cur + EPS ) ok = 0;
+    cur = max( cur, en );
 	}
 
-	printf("%s\n", !ok ? "Survive!" : "Baffling!" ); 
+  if ( cur < 2 * PI - EPS ) ok = 0;
+
+	printf("%s\n", !m || !ok ? "Survive!" : "Baffling!" ); 
 
 	return 0;
 }
