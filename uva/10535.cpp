@@ -42,6 +42,8 @@ using namespace std;
 #define flt(a,b) ((a)<(b)-EPS)
 #define fle(a,b) ((a)<(b)+EPS)
 
+#define PDI pair<double,int>
+
 const double PI = 4.0 * atan( 1.0 );
 
 struct P {
@@ -87,6 +89,54 @@ bool btw( P a, P b, P c ) {
 	return fge( s, 0.0 ) && fle( s, ( c - a ).mag2() );
 }
 
+double ang( P a ) {
+  double ret = atan2( a.y, a.x );
+  if ( ret < -EPS ) ret += 2.0 * PI;
+  return ret;
+}
+
+#define N 1001
+
+bool comp( const PDI &a, const PDI &b ) {
+  if ( feq( a.first, b.first ) ) return a.second < b.second;
+  return a.first < b.first;
+}
+
 int main() {
+  int n, m;
+  P st[N][2], c;
+  PDI q[2222];
+
+  while ( scanf( "%d", &n ), n ) {
+    REP( i, n ) {
+      st[i][0].eat(); st[i][1].eat();
+    }
+    c.eat();
+    m = 0;
+    REP( i, n ) {
+      if ( !ccw( c, st[i][0], st[i][1] ) ) swap( st[i][0], st[i][1] );
+      st[i][0] = st[i][0] - c;
+      st[i][1] = st[i][1] - c;
+      double s = ang( st[i][0] ), t = ang( st[i][1] );
+      if ( s < t ) {
+        q[m++] = PDI( s, 0 );
+        q[m++] = PDI( t, 1 );
+      } else {
+        q[m++] = PDI( s, 0 );
+        q[m++] = PDI( 2.0 * PI, 1 );
+        q[m++] = PDI( 0.0, 0 );
+        q[m++] = PDI( t, 1 );
+      }
+    }
+
+    sort( q, q + m, comp );
+    int ans = 0, cur = 0;
+    REP( i, m ) {
+      if ( q[i].second ) cur--;
+      else ans = max( ans, ++cur );
+    }
+    printf( "%d\n", ans ); 
+  }
+
 	return 0;
 }

@@ -7,141 +7,292 @@ Scribe : David
 
 
 Outline:
-1. Longest Prefix-suffix Problem
-2. Single Pattern Matching ( KMP Algorithm )
-3. Single Pattern Matching ( String Hashing )
+  1. Longest Prefix-suffix Problem
+  2. Single Pattern Matching ( KMP Algorithm )
+  3. Single Pattern Matching ( String Hashing )
 4. Multiple Pattern Matching ( Aho-Corasick Algorithm )
-5. Suffix Array and its Application
+  5. Suffix Array and its Application
 
 
 
-1. Longest Prefix-Suffix Problem
-	Given a string S[0...n-1] of length n, a string T is a prefix of S if T is an empty string or T = S[0...k] for some k < n - 1. Similarly, T is a suffix of S if T is either an empty string or T = S[k...n-1] for some k > 0.
+  1. Longest Prefix-Suffix Problem
+  Given a string S[0...n-1] of length n, a string T is a prefix of S if T is an empty string or T = S[0...k] for some k < n - 1. Similarly, T is a suffix of S if T is either an empty string or T = S[k...n-1] for some k > 0.
 
-	The Longest Prefix-Suffix Problem ( don't google it, I invented this name :o) ) ask you to find the longest string T that is both a prefix and a suffix of a given string S. We can visualize the setting as follows: 
+  The Longest Prefix-Suffix Problem ( don't google it, I invented this name :o) ) ask you to find the longest string T that is both a prefix and a suffix of a given string S. We can visualize the setting as follows: 
 
-		S: |___________________________________________|
-		T: |_______________________|  
-		                       |_______________________|  
-
-
-	For small n, we can solve the problem in a brute force manner in O(n^2). But actually, the problem is solvable in linear time, based on the following properties of longest prefix-suffix
-
-		Property 1.
-			Suppose f(S) is the longest prefix-suffix of the string S. Then the 2-nd longest prefix suffix is f(f(S)), and the k-th longest prefix suffix is the string is f^k(S).
-		Proof Idea:
-			Let S_1, S_2 be the longest and 2_nd longest Prefix-Suffix. Then we have the following 
-
-			S:		|____________________________________________________________|                a
-			S_1:  |______________________________________|                                      b
-																	|______________________________________|                c
-			S_2:  |_______________|																															d 
-																   |_______________|																			e
-																	|_______________|																				f
-																												 |_______________|								g
-			which we can see from line a, d, g, that S_2 is also a Prefix-Suffix of S, and thus we can argue by contradiction ( says replacement method ) that S_2 is the longest prefix-suffix of S_1. Then the first part of the claim 
-		follows by induction on k.
-
-	The property 1 gives us a way to enumerate all the prefix-suffix of a given string if we know the longest prefix-suffix of all its prefixes. To compute f() efficienty, we still need another property.
-
-		Property 2:
-			Consider S[0...k-1] and S[1...k], suppose T[0...l] is the longest prefix-suffix of S[0...k], then T[0...l-1] is a prefix suffix of S[0...k-1].
-
-		Proof Idea:
-			Visualize as follows:
-				S[0...k]:		|______________________________________________________________|		a
-				S[0...k-1]:	|____________________________________________________________|*|		b
-				T[0...l]:		|____________________________|																			c
-																											|____________________________|		d
-				T[0...l-1]: |__________________________|*|																			e
-																											|__________________________|*|		f
-
-			Then the claim is justified from line b, e, f.
+  S: |___________________________________________|
+  T: |_______________________|  
+  |_______________________|  
 
 
-		Then we compute f() inductively for all the prefixes of S[0...n-1].
-			Base Case:
-				f( empty string ) = empty string
-				f( S[0...0] ) = empty string
+  For small n, we can solve the problem in a brute force manner in O(n^2). But actually, the problem is solvable in linear time, based on the following properties of longest prefix-suffix
 
-			Inductive step:
-				Suppose we have computed all the prefix-suffixes of every prefixes of S[0...k-1], we want to compute the longest prefix-suffix of S[0...k]. By properties 2, we can iterate through all the prefix-suffixes of S[0...k-1], says S[0...l-1], and for the first one that satisfies S[k] == S[l], we claim the longest prefix-suffix of S[0...k] is S[0...l].
+  Property 1.
+  Suppose f(S) is the longest prefix-suffix of the string S. Then the 2-nd longest prefix suffix is f(f(S)), and the k-th longest prefix suffix is the string is f^k(S).
+  Proof Idea:
+  Let S_1, S_2 be the longest and 2_nd longest Prefix-Suffix. Then we have the following 
 
-		Implementation: 
-		-------------------------------------------------------
-				pi[0]=0;
-				for(int i=1,j=0; s[i]; i++){
-						while(j>0&&s[i]!=s[j]) j=pi[j-1];
-						if(s[i]==s[j]) j++;
-						pi[i]=j;
-				}
-		------------------------------------------------------
+  S:		|____________________________________________________________|                a
+  S_1:  |______________________________________|                                      b
+  |______________________________________|                c
+  S_2:  |_______________|																															d 
+  |_______________|																			e
+  |_______________|																				f
+  |_______________|								g
+  which we can see from line a, d, g, that S_2 is also a Prefix-Suffix of S, and thus we can argue by contradiction ( says replacement method ) that S_2 is the longest prefix-suffix of S_1. Then the first part of the claim 
+  follows by induction on k.
 
-		Running Time:
-			Notice that j increases by 1 at most n times. So the overall iteration count in the while loop is also at most n, which proves the linear running time. 
+  The property 1 gives us a way to enumerate all the prefix-suffix of a given string if we know the longest prefix-suffix of all its prefixes. To compute f() efficienty, we still need another property.
+
+  Property 2:
+  Consider S[0...k-1] and S[1...k], suppose T[0...l] is the longest prefix-suffix of S[0...k], then T[0...l-1] is a prefix suffix of S[0...k-1].
+
+  Proof Idea:
+  Visualize as follows:
+  S[0...k]:		|______________________________________________________________|		a
+  S[0...k-1]:	|____________________________________________________________|*|		b
+  T[0...l]:		|____________________________|																			c
+  |____________________________|		d
+  T[0...l-1]: |__________________________|*|																			e
+  |__________________________|*|		f
+
+  Then the claim is justified from line b, e, f.
+
+
+  Then we compute f() inductively for all the prefixes of S[0...n-1].
+  Base Case:
+  f( empty string ) = empty string
+  f( S[0...0] ) = empty string
+
+  Inductive step:
+  Suppose we have computed all the prefix-suffixes of every prefixes of S[0...k-1], we want to compute the longest prefix-suffix of S[0...k]. By properties 2, we can iterate through all the prefix-suffixes of S[0...k-1], says S[0...l-1], and for the first one that satisfies S[k] == S[l], we claim the longest prefix-suffix of S[0...k] is S[0...l].
+
+  Implementation: 
+  -------------------------------------------------------
+  pi[0]=0;
+  for(int i=1,j=0; s[i]; i++){
+    while(j>0&&s[i]!=s[j]) j=pi[j-1];
+    if(s[i]==s[j]) j++;
+    pi[i]=j;
+  }
+------------------------------------------------------
+
+Running Time:
+Notice that j increases by 1 at most n times. So the overall iteration count in the while loop is also at most n, which proves the linear running time. 
 
 
 2. Single Pattern Matching : KMP Algorithm
-	
-	The Single Pattern Matching Problem ask you to find (or count) the occurence of a pattern string, says T, in a given string S. By KMP Algorithm, we can solve the problem in O(|S| + |T|) time.
 
-	Observation:
+The Single Pattern Matching Problem ask you to find (or count) the occurence of a pattern string, says T, in a given string S. By KMP Algorithm, we can solve the problem in O(|S| + |T|) time.
 
-		Traditionally, if we are trying to match S[i...i+k-1] to T[0...k-1] and fail at S[i + j], T[j], we start over from S[i+1] and T[0], this causes backing the pointer on S and lead to inefficiency. Notice we actually know what's in S[i...i + j - 1]. This make us ask if we can avoid backing the pointer at S.
+Observation:
 
-		The idea is use the problem above. Suppose we have successfully match
-		
-		S: |___________________|x----------------|
-		T:      |______________|x--------|
+Traditionally, if we are trying to match S[i...i+k-1] to T[0...k-1] and fail at S[i + j], T[j], we start over from S[i+1] and T[0], this causes backing the pointer on S and lead to inefficiency. Notice we actually know what's in S[i...i + j - 1]. This make us ask if we can avoid backing the pointer at S.
 
-		where x denote the position of first failure. 
+The idea is use the problem above. Suppose we have successfully match
 
-		Consider the longest prefix suffix of the matched part of T.
+S: |___________________|x----------------|
+T:      |______________|x--------|
 
-		S: |___________________|x----------------|
-		T:      |______________|x--------|
-						|________|?|     
-						      |________|x|
+where x denote the position of first failure. 
 
-		Since we have successful matched everything before 'x', we have also successful match everything before '?'. Then we can just compare 'x' with '?', which only backs the pointer to T.
+Consider the longest prefix suffix of the matched part of T.
 
-	KMP Algorithm:
-		(1) Compute the function f for all prefixes of T. 
-		(2) Initialize pointer i and j at start of S and T. 
-		(3) while i is not at tail of S. do
-			(3.1) if S[i] == T[j]: j++;
-						else if j > 0: j = f(j), repeat (3.1)
-			(3.2) if j is at the tail of T, report YES
-			(3.3) i++
-		(4) report no.
+S: |___________________|x----------------|
+T:      |______________|x--------|
+|________|?|     
+|________|x|
 
-	Implementation
-	------------------------------------------------------
-		int kmp( char s[], char t[] ) {
-			pi[0] = 0;
-			for ( int i = 1; j = 0; t[i]; i++ ) {
-				while ( j > 0 && s[i] != s[j] ) j = pi[j - 1];
-				if ( s[i] == s[j] ) j++;
-				pi[i] = l;
-			}
+Since we have successful matched everything before 'x', we have also successful match everything before '?'. Then we can just compare 'x' with '?', which only backs the pointer to T.
 
-			int cnt = 0;
-			for( int i = 0, j = 0; s[i]; i++ ) {
-				while ( j > 0 && s[i] != t[j] ) j = pi[j - 1];
-				if ( s[i] == t[j] ) j++;
-				if ( j == n ) cnt++;
-			}
+KMP Algorithm:
+(1) Compute the function f for all prefixes of T. 
+(2) Initialize pointer i and j at start of S and T. 
+(3) while i is not at tail of S. do
+(3.1) if S[i] == T[j]: j++;
+else if j > 0: j = f(j), repeat (3.1)
+  (3.2) if j is at the tail of T, report YES
+  (3.3) i++
+  (4) report no.
 
-			return cnt;
-		}
-	------------------------------------------------------
+  Implementation
+  ------------------------------------------------------
+  int kmp( char s[], char t[] ) {
+    pi[0] = 0;
+    for ( int i = 1; j = 0; t[i]; i++ ) {
+      while ( j > 0 && s[i] != s[j] ) j = pi[j - 1];
+      if ( s[i] == s[j] ) j++;
+      pi[i] = l;
+    }
 
-	The Running time Analysis is similar.
+    int cnt = 0;
+    for( int i = 0, j = 0; s[i]; i++ ) {
+      while ( j > 0 && s[i] != t[j] ) j = pi[j - 1];
+      if ( s[i] == t[j] ) j++;
+      if ( j == n ) cnt++;
+    }
+
+    return cnt;
+  }
+------------------------------------------------------
+
+The Running time Analysis is similar.
 
 
 3. Multiple Pattern Matching. 
-		Suppose we are not given a single pattern, but multiple patterns, how to we solve the problem?
+Suppose we are not given a single pattern, but multiple patterns, how to we solve the problem?
 
-		In order to solve the multiple pattern matching problem, we need to solve a simpler problem first. In this problem, we are given multiple patterns, and we are to determine whether a string is one of these patterns or not. The solution is to introduce a data structure called TRIE, or prefixed-tree
+PRELIMINARY:
 
+In order to solve the multiple pattern matching problem, we need to solve a simpler problem first. In this problem, we are given multiple patterns, and we are to determine whether a string is one of these patterns or not. The solution is to introduce a data structure called TRIE, or dictinary-tree.
 
+In TRIE, every path ending with root correspond to a prefix in the dictionary. For example, a TRIE storing { b, aa, ab, abba, aba } will look like
+
+                ( NULL )
+            a /         \ b
+          ( a )       ( b )
+        a /    \ b
+  ( aa )  ( ab )
+  a /     \ b
+( aba )    ( abb )
+  a /
+( abba )
+
+  MORE over, for every node where the word is exactly one of the word in the dictionary, we should label it to tell us when to stop.
+
+  Then for every query, we can just traverse the tree and looks up the word in linear time (HOW).
+
+  MULTIPLE PATTERN MATCHING:
+
+  To do multiple pattern matching, we want to traverse the tree in the same manner, but when met with NULL pointers, we want to do something else, possibly go to another node, instead of report NO. Thus we need to build a link, called failure link or prefix link, to point to the node in the tree that is the maximum prefix-suffix of the word of the current node. The link can be built in a bottom up fashion, i.e. via BFS. When traversing to a node s, we look at its ancestor p(s), and find its failure link, suppose t. Then if t has a edge, pointing to r, with the same label as the edge from p(s) to s, then r is the failure link of s. If not, we set t to the failure link of t and continue the process.
+
+  IMPLEMENTATION: POJ 2778
+      #include <cstdio>
+      #include <cstring>
+      #include <algorithm>
+      #include <queue>
+      using namespace std;
+
+      #define MAXN 101
+      #define MOD 100000
+      #define LL long long
+
+      const char alp[5]="ATCG";
+
+      struct Matrix {
+        LL A[MAXN][MAXN], n;
+        Matrix() { memset(A,0,sizeof(A)); }
+        Matrix(LL n): n(n) {memset(A,0,sizeof(A));}
+        Matrix(LL a[MAXN][MAXN], LL n): n(n) {memcpy(A, a, sizeof(A));}
+        LL *operator[](int m){ return A[m]; }
+        void out(){
+          for(int i=0; i<n; i++){
+            for(int j=0; j<n; j++){
+              printf("%lld ", A[i][j]);
+            }
+            puts("");
+          }
+        }
+        Matrix id() {
+          Matrix ans=Matrix(n);
+          for(int i=0; i<n; i++)
+            ans[i][i]=1;
+          return ans;
+        }
+        Matrix operator*(Matrix B){
+          Matrix ans = Matrix(n);
+          for(int i=0; i<n; i++)
+            for(int j=0; j<n; j++)
+              for(int k=0; k<n; k++){
+                ans[i][j]+=A[i][k]*B[k][j];
+                ans[i][j]%=MOD;
+              }
+          return ans;
+        }
+        Matrix pow(LL k){
+          if(k==0) return this->id();
+          if(k==1) return *this;
+          Matrix t=this->pow(k/2);
+          if(k&1) return t*t*(*this);
+          else return t*t;
+        }
+      };
+
+    int ns, go[MAXN][1<<8], sk[MAXN], pi[MAXN];
+
+    void init(){
+      memset(go,-1,sizeof(go));
+      memset(sk,0,sizeof(sk));
+      memset(pi,-1,sizeof(pi));
+      ns=1;
+    }
+
+    void insert(int st, char str[]){
+      if(str[0]==0){
+        sk[st]=1;
+      } else {
+        if(go[st][str[0]]==-1) go[st][str[0]]=ns++;
+        insert(go[st][str[0]],str+1);
+      }
+    }
+
+    void make(){
+      queue<int> q;
+      pi[0]=0;
+      q.push(0);
+      while(!q.empty()){
+        int w=q.front();
+        q.pop();
+        for(int i=0; i<4; i++){
+          if(go[w][alp[i]]!=-1){
+            int v=go[w][alp[i]], k=pi[w];
+            while(k>0 && go[k][alp[i]]==-1) k=pi[k];
+            if(w!=0 && go[k][alp[i]]!=-1) k=go[k][alp[i]];
+            pi[v]=k;
+            sk[v]|=sk[k];
+            q.push(v);
+          }
+        }
+      }
+    }
+
+    int main(){
+      char s[30];
+      LL n,m,ans;
+      scanf("%lld%lld", &m, &n);
+      init();
+      for(int i=0; i<m; i++){
+        scanf("%s", s);
+        insert(0,s);
+      }
+      make();
+
+      Matrix mm=Matrix(ns), sol;
+
+      for(int i=0; i<ns; i++){
+        for(int j=0; j<4; j++){
+          int a=i, b;
+          if(go[i][alp[j]]!=-1) b=go[i][alp[j]];
+          else {
+            b=pi[i];
+            while(b>0 && go[b][alp[j]]==-1) b=pi[b];
+            if(a!=0 && go[b][alp[j]]!=-1) b=go[b][alp[j]];
+          }
+          if(!(sk[a]||sk[b])){ 
+            mm[a][b]++;
+            mm[a][b]%=MOD;
+          }
+        }
+      }
+      sol=mm.pow(n);
+      ans=0;
+      for(int i=0; i<ns; i++){
+        if(!sk[i]){
+          ans+=sol[0][i];
+          ans%=MOD;
+        }
+      }
+      printf("%lld\n", ans);
+
+      return 0;
+    }
