@@ -56,9 +56,10 @@ struct P {
 	P operator*( const double s ) const { return P( x * s, y * s ); }
 	double operator*( const P p ) const { return x * p.x + y * p.y; }
 	double operator^( const P p ) const { return x * p.y - y * p.x; }
+  bool operator<( const P p ) const { return x != p.x ? x < p.x : y < p.y; }
   bool operator==( const P p ) const { return feq( x, p.x ) && feq( y, p.y ); }
 
-  double mag() { return sqrt( x * x + y * y); }
+	double mag() { return sqrt( x * x + y * y ); }
 	double mag2() { return x * x + y * y; }
 
 	P nor() { return * this * ( 1.0 / mag() ); }
@@ -86,56 +87,14 @@ bool btw( P a, P b, P c ) {
 	return fge( s, 0.0 ) && fle( s, ( c - a ).mag2() );
 }
 
-#define N 555
-
-bool up( P a ) {
-  return a.y == 0 ? a.x > 0 : a.y > 0;
+bool lli( P a, P b, P c, P d, P & res ) {
 }
 
-bool plt( const P &a, const P &b ) {
-   if( up( a ) ^ up( b ) ) return up( a ); 
-   return ( a ^ b ) > EPS;
-}
+#define N 111
 
-typedef pair<P, int> PPI;
+char gr[N][N];
 
-bool comp_evt( const PPI &a, const PPI &b ) {
-  P pa = a.first, pb = b.first;
-  if ( feq( pa ^ pb, 0.0 ) && up( pa ) == up( pb ) )  return a.second > b.second;
-  return plt( pa, pb );
-}
-
-int n, cur, m, ans = 0;
-P st[N][2], c;
-PPI q[N * 2];
 
 int main() {
-  while( scanf( "%d", &n ), n ) {
-    REP( i, n ) {
-      st[i][0].eat();
-      st[i][1].eat();
-    }
-    c.eat();
-
-    cur = 0; m = 0;
-    REP( i, n ) {
-      if ( !ccw( c, st[i][0], st[i][1] ) ) swap( st[i][0], st[i][1] );
-      st[i][0] = st[i][0] - c;
-      st[i][1] = st[i][1] - c;
-      if ( ! up( st[i][0] ) && up( st[i][1] ) ) cur++;
-      q[m++] = PPI( st[i][0], 1 );
-      q[m++] = PPI( st[i][1], -1 );
-    }
-
-    sort( q, q + m, comp_evt );
-
-    ans = 0;
-    REP( i, m ) {
-      cur += q[i].second;
-      ans = max( ans, cur );
-    }
-
-    printf( "%d\n", ans );
-  }
-  return 0;
+	return 0;
 }

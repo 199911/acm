@@ -22,9 +22,9 @@ using namespace std;
 
 #define FOR(i,a,b) for (int i = (a); i < (b); i++)
 #define FOE(i,a,b) for (int i = (a); i <= (b); i++)
+#define REP(i, n) FOR(i, 0, n)
 #define FR(i,e) for(__typeof(e.begin()) i = e.begin(); x != e.end(); i++)
 #define SQR(x) ((x)*(x))
-#define REP(i,n) FOR(i,0,n)
 #define CLR(a,b) memset(a, b, sizeof(a))
 #define INF (1<<29)
 #define LL long long
@@ -108,9 +108,9 @@ bool intersect( P a, double ra, P b, double rb, double &s, double &t ) {
   double x = 2 * A / rc;
   double ya = sqrt( ra * ra - x * x ), yb = sqrt( rb * rb - x * x ) ;
 
-//  printf( "%lf, %lf %lf %lf\n", x, ya, yb, rc);
+  //  printf( "%lf, %lf %lf %lf\n", x, ya, yb, rc);
 
-//  if ( !feq( rc, ya + yb ) ) printf( "asdf: %.13f\n", ya + yb - rc );
+  //  if ( !feq( rc, ya + yb ) ) printf( "asdf: %.13f\n", ya + yb - rc );
 
   if ( isnan( ya ) || isnan( yb ) || isnan( A ) ) while ( 1 );
 
@@ -119,18 +119,18 @@ bool intersect( P a, double ra, P b, double rb, double &s, double &t ) {
   if ( !feq( rc, fabs( ya - yb ) ) && !feq( rc, ya + yb ) ) while ( 1 );
 
   if ( ra < rb - EPS && SQR( ra ) + SQR( rc ) < SQR( rb ) - EPS ) {
-//    if ( !feq( rc, fabs( ya - yb )) ) while ( 1 );
+    //    if ( !feq( rc, fabs( ya - yb )) ) while ( 1 );
     u = ( b - a ).nor() * ( -ya ) + ( b - a ).nor().rrot() * x;
     v = ( b - a ).nor() * ( -ya ) + ( b - a ).nor().rot() * x;
   } else {
-//    if ( !feq( rc, ya + yb ) ) while ( 1 );
+    //    if ( !feq( rc, ya + yb ) ) while ( 1 );
     u = ( b - a ).nor() * ya + ( b - a ).nor().rrot() * x;
     v = ( b - a ).nor() * ya + ( b - a ).nor().rot() * x;
   }
 
   s = ang( u );
   t = ang( v );
-  
+
   if ( u == v ) while ( 1 ); 
   if ( feq( s, t ) ) while ( 1 );
 
@@ -201,7 +201,7 @@ double circle_union( P C[], double R[], int n ) {
       A2 += 0.5 * ( a ^ b );
     }
   }
-  
+
   A2 = fabs( A2 );
 
   return A1 + A2;
@@ -209,16 +209,37 @@ double circle_union( P C[], double R[], int n ) {
 
 
 int main() {
-  int n = 0, k;
+  int n = 0;
+  double coor[N];
   double R[N];
   P C[N];
-  scanf( "%d", &k );
-  REP( i, k ) {
-    C[n].eat();
-    scanf( "%lf", &R[n] );
-    if ( R[n] > EPS ) n++;
+
+  while ( 1 ) {
+    int ok = 1;
+    REP( i, 8 ) { 
+      scanf( "%lf", &coor[i] );
+      if ( coor[i] < EPS ) ok = 0;
+    }
+    if ( !ok ) break;
+    P seg[2][2];
+      REP( i, 2 ) { 
+        REP( j, 2 ) {
+          seg[i][j] = P( coor[i * 4 + j * 2], coor[i * 4 + j * 2 + 1]);
+        }
+      }
+    n = 0;
+    REP( i, 2 ) REP( j, 2 ) {
+      C[n] = (seg[0][i] + seg[1][j] ) * 0.5;
+      R[n] = (seg[0][i] - seg[1][j] ).mag() / 2.0;
+      n++;
+    }
+
+    REP( i, n ) {
+      C[i].out();
+      printf( " %.3f\n", R[i] );
+    }
+    double ans = circle_union( C, R, n );
+    printf( "%.3f\n", ans );
   }
-  double ans = circle_union( C, R, n );
-  printf( "%.3f\n", ans );
   return 0;
 }
