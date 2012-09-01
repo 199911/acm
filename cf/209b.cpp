@@ -11,7 +11,6 @@
 #include <utility>
 #include <list>
 #include <set>
-#include <bitset>
 #include <map>
 #include <queue>
 #include <stack>
@@ -36,7 +35,30 @@ using namespace std;
 #define gmin(a,b) { if ( b < a ) a = b; }
 #define gmax(a,b) { if ( b > a ) a = b; }
 
+int cnt[3];
+
+LL doit( int tg )  {
+  int a, b, c;
+  a = cnt[tg];
+  b = cnt[(tg + 1) % 3];
+  c = cnt[(tg + 2) % 3];
+
+  int d = min(b, c), ans = 0;
+
+  a += d;
+  b -= d;
+  c -= d;
+  ans += d;
+
+  if ( a < max
+
+
+
+}
+
 int main() {
-  set<int> S;
+  REP( i, 3 ) cin >> cnt[i];
+  LL ans = -1;
+  cout << ans << endl;
   return 0;
 }

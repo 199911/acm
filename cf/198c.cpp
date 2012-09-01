@@ -88,6 +88,81 @@ bool btw( P a, P b, P c ) {
 	return fge( s, 0.0 ) && fle( s, ( c - a ).mag2() );
 }
 
+double ang( P a ) {
+  double ret = atan2( a.y, a.x );
+  if ( ret < -EPS ) ret += 2 * PI;
+  return ret;
+}
+
+double R, r, s, o, vp, v, t, Q;
+P cur, st;
+
+double spd( P a, P b, P c ) {
+  double t = (c - a) * (b - a);
+  if ( b == c ) return ( b - a ).mag();
+  if ( t > 0 && t < (b - a).mag2() ) {
+    return fabs( (b - a).nor() ^ (c - a) );
+  } else {
+    return min( (c - b).mag(), (c - a).mag() );
+  }
+}
+
+double dist( P a, P b ) {
+  double d = spd( a, b, P(0, 0) );
+//  printf("---- %lf ----", d);
+  if ( d > r - EPS ) {
+    return (b - a).mag();
+  } else { 
+    double th = atan2( a.y, a.x ) - atan2( b.y, b.x ); 
+    while ( th < -EPS ) th += 2 * PI;
+    while ( th > 2 * PI + EPS ) th -= PI;
+
+    if ( th > PI ) th = 2 * PI - th;
+
+    double al = acos( r / a.mag() ); 
+    double bt = acos( r / b.mag() );
+
+    double len = ( th - al - bt ) * r;
+    double l1 = sqrt( b.mag2() - r * r + EPS );
+    double l2 = sqrt( a.mag2() - r * r + EPS );
+
+    return len + l1 + l2;
+  }
+}
+
+
 int main() {
+  st.eat();
+  scanf( "%lf", &vp );
+  cur.eat();
+  scanf( "%lf%lf", &v, &r );
+  R = st.mag();
+  o = vp / R;
+  s = ang( st );
+  t = ang( cur );
+
+  Q = t - s;
+  while ( Q < -EPS ) Q += 2 * PI;
+
+  double up = 1e9, lo = 0;
+
+  while ( up > lo + 1e-10 ) {
+    double mid = (up + lo) / 2.0;
+
+    double ang = s + o * mid;
+
+    P p = P( R * cos(ang), R * sin(ang) );
+
+    double d = dist( p, cur );
+
+    if ( d < mid * v + EPS ) {
+      up = mid;
+    } else {
+      lo = mid;
+    }
+  }
+
+  printf( "%.9f\n", up);
+
 	return 0;
 }
