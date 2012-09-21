@@ -63,7 +63,7 @@ struct P {
   P rot() { return P( -y, x ); }
   P rot( double si, double co ) { return P( x * co - y * si, x * si + y * co ); }
   P rot( double th ) { return rot( sin( th ), cos( th ) ); }
-} V[N];
+};
 
 double area( P a, P b, P c ) {
   return 0.5 * ( ( b - a ) ^ ( c - a ) );
@@ -73,6 +73,7 @@ bool ccw( P a, P b, P c ) {
   return fge( area(a, b, c), 0.0 );
 }
 
+P V[N];
 int hd[N], to[M], nt[M], n, m;        // graph structure
 int ne[M], pe[M], oc[F], fn;
 double fa[F];

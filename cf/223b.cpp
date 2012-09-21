@@ -36,55 +36,42 @@ using namespace std;
 #define gmin(a,b) { if ( b < a ) a = b; }
 #define gmax(a,b) { if ( b > a ) a = b; }
 
-#define N 111111
+#define N 222222
 
-int a[N], b[N], pa[N], pb[N], n, sf = 0;
-
-int dist( int k ) {
-  int da = pa[k], db = (pb[k] + sf + n) % n;
-  return da - db;
-}
-
-struct comp {
-  bool operator()( const int &a, const int &b ) {
-    int da = dist(a), db = dist(b);
-    return da < db || da == db && b < a;
-  }
-};
+int d[N], e[N], f[300], l[300], n, m;
+char s[N], t[N];
 
 int main() {
-  scanf( "%d", &n );
-  REP( i, n ) { 
-    scanf( "%d", &a[i] );
-    a[i]--;
-    pa[a[i]] = i;
-  }
-  REP( i, n ) {
-    scanf( "%d", &b[i] );
-    b[i]--;
-    pb[b[i]] = i;
-  }
-  
-  sf = 0;
-  multiset<int, comp> T;
-  REP( i, n ) T.insert( i );
+  scanf( "%s%s", s, t );
+  n = strlen( s );
+  m = strlen( t );
 
-  pa[n] = pb[n] = 0;
-
-  REP( i, n ) {
-    multiset<int,comp>::iterator x = T.lower_bound( n );
-    int ans = abs( dist( *x ) );
-    if ( x != T.begin() ) { 
-      x--; 
-      ans = min( ans, abs( dist( *x ) ) );
-    }
-    printf( "%d\n", ans );
-
-    int ch = b[i];
-    T.erase( T.find( ch ) );
-    sf--;
-    pb[n]++;
-    T.insert( ch );
+  for( int i = 0, p = 0; i < n; i++ ) {
+    if ( p < m && s[i] == t[p] ) p++;
+    d[i] = p;
   }
+
+  for( int i = n - 1, p = 0; i >= 0; i-- ) {
+    if ( p < m && s[i] == t[m - 1 - p] ) p++;
+    e[i] = p;
+  }
+
+  memset( f, -1, sizeof( f ) );
+  memset( l, -1, sizeof( l ) );
+
+  for( int i = 0; i < m; i++ ) {
+    if ( f[t[i]] == -1 ) f[t[i] - 'a'] = i; 
+    l[t[i]] = i;
+  }
+
+  int ok = 1;
+
+  for( int i = 0; i < n; i++ ) { 
+    if ( f[t[i]] == -1 || l[t[i]] == -1 ) ok = 0;
+    int kk = 0;
+  }
+
+  printf( "%s\n", ok ? "YES" : "NO" );
+
   return 0;
 }

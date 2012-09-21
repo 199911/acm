@@ -36,55 +36,43 @@ using namespace std;
 #define gmin(a,b) { if ( b < a ) a = b; }
 #define gmax(a,b) { if ( b > a ) a = b; }
 
-#define N 111111
+#define N 2222
+#define MOD 1000000007
 
-int a[N], b[N], pa[N], pb[N], n, sf = 0;
-
-int dist( int k ) {
-  int da = pa[k], db = (pb[k] + sf + n) % n;
-  return da - db;
+void mult( LL a[], LL b[], LL c[], int n ) {
+  LL res[N], t1[N];
+  REP( i , n ) {
+    t1[i] = 0;
+    FOE( j, 0, i ) {
+      t1[i] += a[j] * b[i - j];
+      t1[i] %= MOD;
+    }
+  }
+  REP( i , n ) c[i] = t1[i];
 }
 
-struct comp {
-  bool operator()( const int &a, const int &b ) {
-    int da = dist(a), db = dist(b);
-    return da < db || da == db && b < a;
+void exp( LL a[], int n, LL k, LL r[] ) {
+  LL res[N], t2[N];
+  REP( i , n ) { res[i] = 0; t2[i] = a[i]; }
+  res[0] = 1;
+  while( k ) {
+    if ( k & 1 ) mult( res, t2, res, n );
+    mult( t2, t2, t2, n );
+    k >>= 1;
   }
-};
+  REP( i, n ) r[i] = res[i];
+}
+
+
 
 int main() {
-  scanf( "%d", &n );
-  REP( i, n ) { 
-    scanf( "%d", &a[i] );
-    a[i]--;
-    pa[a[i]] = i;
-  }
-  REP( i, n ) {
-    scanf( "%d", &b[i] );
-    b[i]--;
-    pb[b[i]] = i;
-  }
-  
-  sf = 0;
-  multiset<int, comp> T;
-  REP( i, n ) T.insert( i );
-
-  pa[n] = pb[n] = 0;
-
-  REP( i, n ) {
-    multiset<int,comp>::iterator x = T.lower_bound( n );
-    int ans = abs( dist( *x ) );
-    if ( x != T.begin() ) { 
-      x--; 
-      ans = min( ans, abs( dist( *x ) ) );
-    }
-    printf( "%d\n", ans );
-
-    int ch = b[i];
-    T.erase( T.find( ch ) );
-    sf--;
-    pb[n]++;
-    T.insert( ch );
-  }
+  LL a[N], b[N], c[N], k; 
+  int n;
+  cin >> n >> k;
+  REP( i, n ) a[i] = 1;
+  REP( i , n ) cin >> c[i];
+  exp( a, n, k, b );
+  mult( c, b, c, n );
+  REP( i , n ) cout << c[i] << ( i == n - 1 ? "\n" : " " );
   return 0;
 }

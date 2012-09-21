@@ -11,8 +11,6 @@
 #include <utility>
 #include <list>
 #include <set>
-#include <bitset>
-#include <map>
 #include <queue>
 #include <stack>
 #include <iostream>
@@ -38,53 +36,28 @@ using namespace std;
 
 #define N 111111
 
-int a[N], b[N], pa[N], pb[N], n, sf = 0;
-
-int dist( int k ) {
-  int da = pa[k], db = (pb[k] + sf + n) % n;
-  return da - db;
+void update( int b[], int k, int a ) {
+  for( int i = k; i < N; i += i & - i ) 
+    b[i] += a;
 }
 
-struct comp {
-  bool operator()( const int &a, const int &b ) {
-    int da = dist(a), db = dist(b);
-    return da < db || da == db && b < a;
-  }
-};
+LL query( int b[], int k ) {
+  LL ans = 0;
+  for( int i = k; i > 0; i -= i & -i )
+    ans += b[i];
+  return ans;
+}
+
+int discretize( int A[], int n ) {
+  int S[N];
+  REP( i, n ) S[i] = A[i];
+  sort( S, S + n );
+  int m = unique( S, S + n ) - S;
+  REP( i, n ) A[i] = lower_bound( S, S + m, A[i] ) - S;
+
+  return m;
+}
 
 int main() {
-  scanf( "%d", &n );
-  REP( i, n ) { 
-    scanf( "%d", &a[i] );
-    a[i]--;
-    pa[a[i]] = i;
-  }
-  REP( i, n ) {
-    scanf( "%d", &b[i] );
-    b[i]--;
-    pb[b[i]] = i;
-  }
-  
-  sf = 0;
-  multiset<int, comp> T;
-  REP( i, n ) T.insert( i );
-
-  pa[n] = pb[n] = 0;
-
-  REP( i, n ) {
-    multiset<int,comp>::iterator x = T.lower_bound( n );
-    int ans = abs( dist( *x ) );
-    if ( x != T.begin() ) { 
-      x--; 
-      ans = min( ans, abs( dist( *x ) ) );
-    }
-    printf( "%d\n", ans );
-
-    int ch = b[i];
-    T.erase( T.find( ch ) );
-    sf--;
-    pb[n]++;
-    T.insert( ch );
-  }
   return 0;
 }
