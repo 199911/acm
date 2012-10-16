@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <ctime>
+#include <cctype>
 #include <algorithm>
 #include <utility>
 #include <numeric>
@@ -33,15 +34,6 @@ using namespace std;
 #define gmin(a,b) { if ( b < a ) a = b; }
 #define gmax(a,b) { if ( b > a ) a = b; }
 
-// compute the last nonzero digit for n factorial
-int L( LL n ) {
-  int d[10] = { 1, 1, 2, 6, 4};
-  int q[4] = {2, 4, 8, 6};
-  if ( n < 10 ) return d[n];  
-  return q[n % 4] * L(n / 5) * d[n % 5] % 10;
-}
-
 int main() {
-  LL m, n;
   return 0;
 }

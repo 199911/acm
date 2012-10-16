@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <ctime>
+#include <cctype>
 #include <algorithm>
 #include <utility>
 #include <numeric>
@@ -10,6 +11,8 @@
 #include <utility>
 #include <list>
 #include <set>
+#include <bitset>
+#include <map>
 #include <queue>
 #include <stack>
 #include <iostream>
@@ -33,15 +36,38 @@ using namespace std;
 #define gmin(a,b) { if ( b < a ) a = b; }
 #define gmax(a,b) { if ( b > a ) a = b; }
 
-// compute the last nonzero digit for n factorial
-int L( LL n ) {
-  int d[10] = { 1, 1, 2, 6, 4};
-  int q[4] = {2, 4, 8, 6};
-  if ( n < 10 ) return d[n];  
-  return q[n % 4] * L(n / 5) * d[n % 5] % 10;
-}
-
 int main() {
-  LL m, n;
+  LL A[111];
+  int n, k, s;
+  scanf( "%d%d", &s, &k );
+
+  for( int i = 0, cur = 1; cur <= s; i++ ) {
+    if ( i < k ) {
+      A[i] = 1 << i;
+      cur = A[i];
+    } else {
+      cur = 0;
+      for( int j = i - k; j < i; j++ ) cur += A[j];
+      A[i] = cur;
+    }
+    n = i + 1;
+  }
+
+  int b[111], m = 0;
+
+  for( int i = n - 1, f = 1; s > 0 && i >= 0; i--, f = 0 ) {
+    if ( A[i] <= s ) {
+      b[m++] = A[i];
+      s -= A[i];
+    }
+  }
+
+  if( m == 1 ) b[m++] = 0;
+  sort( b, b + m );
+
+  printf( "%d\n", m );
+  REP( i, m ) printf( "%d%s", b[i], i == m - 1 ? "\n" : " " );
+
+
   return 0;
 }

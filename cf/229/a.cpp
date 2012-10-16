@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <ctime>
+#include <cctype>
 #include <algorithm>
 #include <utility>
 #include <numeric>
@@ -10,6 +11,8 @@
 #include <utility>
 #include <list>
 #include <set>
+#include <bitset>
+#include <map>
 #include <queue>
 #include <stack>
 #include <iostream>
@@ -33,15 +36,52 @@ using namespace std;
 #define gmin(a,b) { if ( b < a ) a = b; }
 #define gmax(a,b) { if ( b > a ) a = b; }
 
-// compute the last nonzero digit for n factorial
-int L( LL n ) {
-  int d[10] = { 1, 1, 2, 6, 4};
-  int q[4] = {2, 4, 8, 6};
-  if ( n < 10 ) return d[n];  
-  return q[n % 4] * L(n / 5) * d[n % 5] % 10;
-}
+#define N 111
+#define M 11111
+
+char A[N][M];
+int lf[N][M], rt[N][M], n, m;
 
 int main() {
-  LL m, n;
+  scanf( "%d%d", &n, &m );
+
+  REP( i, n ) scanf( "%s", A[i] );
+
+  int ok = 1;
+  REP( i, n ) {
+    int lst = -INF, fst = INF;
+    REP( j, m ) if ( A[i][j] == '1' ) {
+      fst = min( fst, j );
+      lst = max( lst, j );
+    }
+
+    if ( lst == -INF ) ok = 0;
+
+    REP( j, m ) {
+      if ( A[i][j] == '1' ) lst = j; 
+      lf[i][j] = lst;
+    }
+
+    for( int j = m - 1; j >= 0; j-- ) {
+      if ( A[i][j] == '1' ) fst = j;
+      rt[i][j] = fst;
+    }
+  }
+
+  if ( !ok ) printf( "-1\n" );
+  else {
+    int ans = INF;
+
+    REP( j, m ) {
+      int ll = 0;
+      REP( i, n ) {
+        ll += min( (j - lf[i][j] + m) % m, (rt[i][j] - j + m) % m );
+      }
+      ans = min( ll, ans );
+    }
+
+    printf( "%d\n", ans );
+  }
+
   return 0;
 }

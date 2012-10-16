@@ -43,6 +43,7 @@ void update( int b[], int k, int a ) {
 
 LL query( int b[], int k ) {
   LL ans = 0;
+  if ( k == 0 ) return 0;
   for( int i = k; i > 0; i -= i & -i )
     ans += b[i];
   return ans;
