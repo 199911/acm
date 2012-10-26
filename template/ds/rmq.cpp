@@ -11,8 +11,6 @@
 #include <utility>
 #include <list>
 #include <set>
-#include <bitset>
-#include <map>
 #include <queue>
 #include <stack>
 #include <iostream>
@@ -36,38 +34,28 @@ using namespace std;
 #define gmin(a,b) { if ( b < a ) a = b; }
 #define gmax(a,b) { if ( b > a ) a = b; }
 
-#define N 222222
+#define N 555555
 
-int bk[N], fs[N], fi[N], mt[333], n, m;
-char s[N], t[N];
+int Q[20][N], LOG[N];
+
+void build( int A[], int n ) {
+	LOG[1] = 0;
+	FOE( i, 1, n ) LOG[i] = LOG[i / 2] + 1;
+	REP( i, n ) Q[0][i] = A[i];
+	
+	FOE( j, 1, LOG[n] ) {
+		REP( i, n ) {
+			int b = min( n - 1, i + (1 << j) );
+			Q[j][i] = max( Q[j - 1][i], Q[j - 1][b] );
+		}
+	}
+}
+
+int query( int l, int r ) {
+	int len = r - l + 1, ln = 1 << LOG[len];
+	return max( Q[LOG[len]][l], Q[LOG[len]][r - ln + 1] );
+}
 
 int main() {
-	scanf( "%s%s", s, t );
-	n = strlen( s );
-	m = strlen( t );
-
-	CLR( bk, 0 );
-	CLR( fs, -1 );
-	CLR( mt, -1 );
-
-	for( int i = 0, p = 0; i < n; i++ ) {
-		if ( p < m && s[i] == t[p] ) mt[s[i]] = p++;
-		fs[i] = mt[s[i]];
-	}
-
-	for( int i = n - 1, p = 0; i >= 0; i-- ) {
-		if ( p < m && s[i] == t[m - 1 - p] ) p++;
-		bk[i] = p;
-	}
-
-	int ok = 1;
-
-	for( int i = 0; i < n; i++ ) {
-		if ( fs[i] < 0 ) ok = 0; 
-		else if ( fs[i] + bk[i] < m ) ok = 0;
-	}
-
-	printf( "%s\n", ok ? "YES" : "NO" );
-
-	return 0;
+  return 0;
 }
