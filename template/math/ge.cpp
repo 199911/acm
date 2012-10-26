@@ -39,13 +39,6 @@ double A [111][111];
 int piv[111];
 
 void ge( int m, int n ) {
-  /*
-  REP( i, m ) { 
-    REP( j, n ) 
-      printf( "%f ", A[i][j] );
-    puts( "" );
-  }
-  */
   for( int i = 0, cur = 0; i < n; i++ ) {
     if ( fabs( A[cur][i] ) > EPS ) {
       piv[i] = cur;
@@ -63,7 +56,6 @@ void ge( int m, int n ) {
 
     if ( piv[i] == -1 ) continue;
 
-
     for( int k = n - 1; k >= i; k-- ) 
       A[cur][k] /= A[cur][i];
     for( int j = cur + 1; j < m; j++ ) {
@@ -74,14 +66,6 @@ void ge( int m, int n ) {
 
     cur++;
   }
-  /*
-  REP( i, m ) { 
-    REP( j, n ) 
-      printf( "%f ", A[i][j] );
-    puts( "" );
-  }
-  */
-
 }
 
 void bs( int m, int n ) {
@@ -160,15 +144,6 @@ int main() {
     for( int i = 0; i < n; i++ ) A[i][i] -= 1.0;
     A[0][n] = -1.0;
 
-    /*
-    REP( i, n ) {
-      REP( j, n + 1 ) {
-        printf( "%.3f ", A[i][j] );
-      }
-      puts( "" );
-    }
-    */
-    
     ge( n, n + 1 );
     bs( n, n + 1 );
 
@@ -178,7 +153,6 @@ int main() {
     REP( i, n ) REP( j, n ) 
       if ( adj[i][j] && scc[i] != scc[j] ) snk[scc[i]] = 0;
     REP( i, n ) if ( outdg[i] == 0 ) ext[scc[i]] = 1;
-//    REP( i, n ) printf( "scc[%d] = %d(%d, %d)\n", i, scc[i], snk[scc[i]], ext[scc[i]] );
     dfs(0);
 
     printf( "Case #%d:\n", cas++ );

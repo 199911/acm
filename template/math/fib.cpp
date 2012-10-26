@@ -35,24 +35,22 @@ using namespace std;
 #define gmax(a,b) { if ( b > a ) a = b; }
 
 // multiply 2 * 2 matrices
-void mul( int a[2][2], int b[2][2], int c[2][2] ) {
+void mul( LL a[2][2], LL b[2][2], LL c[2][2] ) {
 	REP( i, 2 ) REP( j, 2 ) {
 		c[i][j] = 0;
 		REP( k , 2 ) c[i][j] = c[i][j] + a[i][k] * b[k][j];
 	}
 }
 
-int fib( LL k ) {
-	int cur[2][2] = { {1, 1}, {1, 0}}, res[2][2] = {{1, 0}, {0, 1}}, tmp[2][2];
+LL fib( LL k ) {
+	LL cur[2][2] = { {1, 1}, {1, 0}}, res[2][2] = {{1, 0}, {0, 1}}, tmp[2][2];
 	while ( k ) {
 		if ( k & 1 ) {
 			mul( res, cur, tmp );
 			REP(i, 2) REP(j, 2) res[i][j] = tmp[i][j];
 		}
-
 		mul( cur, cur, tmp );
 		REP( i, 2 ) REP(j, 2) cur[i][j] = tmp[i][j];
-
 		k >>= 1;
 	}
 
@@ -62,8 +60,8 @@ int fib( LL k ) {
 int main() {
 	int n;
 	while ( cin >> n ) {
-		int res= fib( n );
-		printf( "%d\n", res );
+		LL res= fib( n );
+		printf( "%lld\n", res );
 	}
   return 0;
 }
