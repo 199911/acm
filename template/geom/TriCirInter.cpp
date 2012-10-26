@@ -133,17 +133,17 @@ double TriCirIntersect( P a, P b, double r ) {
 }
 
 int main() {
-  P p[55], c;
-  int n;
+  P p[3], c;
   double r, ans;
   while ( 1 ) {
+    REP( i, 3 ) p[i].eat();
+    c.eat();
+    REP( i, 3 ) p[i] = p[i] - c;
     if ( scanf( "%lf", &r ) == EOF ) break;
-    scanf( "%d", &n );
-    REP( i, n ) p[i].eat();
     ans = 0.0;
-    REP( i, n ) {
-      double tmp = TriCirIntersect( p[i], p[(i + 1) % n], r );
-      if ( (p[i] ^ p[(i + 1) % n]) < -EPS ) ans -= tmp;
+    REP( i, 3 ) {
+      double tmp = TriCirIntersect( p[i], p[(i + 1) % 3], r );
+      if ( (p[i] ^ p[(i + 1) % 3]) < -EPS ) ans -= tmp;
       else ans += tmp;
     }
     ans = fabs( ans );

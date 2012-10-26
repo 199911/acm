@@ -59,7 +59,7 @@ struct P {
   bool operator<( const P p ) const { return x != p.x ? x < p.x : y < p.y; }
   bool operator==( const P p ) const { return feq( x, p.x ) && feq( y, p.y ); }
 
-  double mag() { return sqrt( x * x + y * y ); }
+  double mag() { return sqrt( x * x + y * y + EPS ); }
   double mag2() { return x * x + y * y; }
 
   P nor() { return * this * ( 1.0 / mag() ); }
@@ -75,11 +75,11 @@ double area(P a, P b, P c) {
 }
 
 bool ccw( P a, P b, P c ) {
-  return fge( area( a, b, c ), 0.0 );
+  return ( ( b - a ) ^ ( c - a ) ) > -EPS;
 }
 
 bool Ccw( P a, P b, P c ) {
-  return fgt( area( a, b, c ), 0.0 );
+  return ( ( b - a ) ^ ( c - a ) ) > EPS;
 }
 
 bool btw( P a, P b, P c ) {
@@ -88,66 +88,74 @@ bool btw( P a, P b, P c ) {
   return fge( s, 0.0 ) && fle( s, ( c - a ).mag2() );
 }
 
-bool lci( P a, P b, P c, double r, double &s, double &t ) {
-  double A = ( b - a ).mag2(), B = 2.0 * (( a - c ) * ( b - a )), C = ( a - c ).mag2() - r * r;
-  double det = B * B - 4.0 * A * C;
-  if ( det < -EPS ) return false;
-  det = sqrt( det + EPS );
-  s = ( -B - det ) / ( 2.0 * A );
-  t = ( -B + det ) / ( 2.0 * A );
-  return true;
+#define N 2222
+
+int n, x, y, r, piv, S[N], m, cas = 1;
+double R;
+P p[N], C;
+
+bool up( P a ) {
+  return a.y == 0 ? a.x > 0 : a.y > 0;
 }
 
-double arc( P a, P b, double r ) {
-  double th = atan2( b.y, b.x ) - atan2( a.y, a.x );
-  if ( th < 0 ) th += 2.0 * PI;
-  if ( th > PI ) th = 2.0 * PI - th;
-  return r * r * th * 0.5;
+bool comp( const int &a, const int &b ) {
+  if ( a == piv || b == piv ) return b == piv;
+  if ( up( p[a] - p[piv] ) ^ ( up( p[b] - p[piv] ) ) ) return up( p[a] - p[piv] );
+  return ccw( p[piv], p[a], p[b] );
 }
 
-#define btw(a,b,c) (((b)>(a)-EPS)&&((b)<(c)+EPS))
-
-// assume orgin is the center of circle and one of the triangle vertices
-double TriCirIntersect( P a, P b, double r ) {
-  double s, t;
-  if ( !lci( a, b, P( 0.0, 0.0 ), r, s, t ) ) {
-    return arc( a, b, r );
-  } else {
-    if ( !btw( 0.0, s, 1.0 ) && !btw( 0.0, t, 1.0 ) ) {
-      if ( a.mag2() < r * r ) return 0.5 * fabs( a ^ b );
-      else return arc( a, b, r );
-    } else if ( btw( 0.0, s, 1.0 ) && btw( 0.0, t, 1.0 ) ) {
-      P c = a + ( b - a ) * s, d = a + ( b - a ) * t;
-      return arc( a, c, r ) + 0.5 * fabs( c ^ d ) + arc( d, b, r );
-    } else {
-      P c = a + ( b - a ) * ( btw( 0.0, s, 1.0 ) ? s : t );
-      double ret = 0.0;
-      if ( a.mag2() < r * r ) ret += 0.5 * fabs( a ^ c );
-      else ret += arc( a, c, r );
-      if ( b.mag2() < r * r ) ret += 0.5 * fabs( b ^ c );
-      else ret += arc( b, c, r );
-
-      return ret;
-    }
-  }
-}
+double d, l, a1, a2, ar, ans;
 
 int main() {
-  P p[55], c;
-  int n;
-  double r, ans;
-  while ( 1 ) {
-    if ( scanf( "%lf", &r ) == EOF ) break;
-    scanf( "%d", &n );
-    REP( i, n ) p[i].eat();
+  while ( scanf( "%d%d%d%d", &x, &y, &r, &n ), x || y || r || n ) {
+    C = P( x, y );
+    R = r;
+    REP( i, n ) {
+      p[i].eat();
+      p[i] = p[i] - C;
+      S[i] = i;
+    }
+
     ans = 0.0;
     REP( i, n ) {
-      double tmp = TriCirIntersect( p[i], p[(i + 1) % n], r );
-      if ( (p[i] ^ p[(i + 1) % n]) < -EPS ) ans -= tmp;
-      else ans += tmp;
+      piv = i;
+      sort( S, S + n, comp );
+      /*
+      m = n - 1;
+      int a = 0, b = 0, cnt = 1;
+      while( a < m ) {
+        if ( a == b ) {
+          do {
+            cnt++; b++; b %= m;
+          } while ( b != a && ccw( p[piv], p[S[a]], p[S[b]] )); 
+        } else {
+          while( b != a && ccw( p[piv], p[S[a]], p[S[b]] ) ) {
+            cnt++; b++; b %= m;
+          }
+        }
+        a1 = (double)cnt / n;
+        d = ( p[S[a]] - p[piv] ).nor() ^( P( 0.0, 0.0 ) - p[piv] );
+        if ( d < 0.0 ) d = -d;
+        l = sqrt( R * R - d * d + EPS ) ;
+        ar = atan2( l, d ) * R * R - l * d;
+        if ( ccw( p[piv], p[S[a]], P( 0.0, 0.0 ) ) )
+          ar = PI * R * R- ar;
+        a2 = ar / ( PI * R * R );
+        ans = max( ans, fabs( a1 - a2 ) );
+        a++; cnt--;
+      }
+
+      cnt = 1;
+      REP( j, m ) if ( ( p[S[j]] - p[piv] ) * p[piv] > -EPS ) cnt++;
+
+      a1 = (double) cnt / n;
+      d = p[piv].mag(), l = sqrt( R * R - d * d + EPS ), ar = atan2( l, d ) * R * R;
+      double a2 = ar / ( PI * R * R );
+      ans = max( ans, fabs( a2 - a1 ) );
+      */
     }
-    ans = fabs( ans );
-    printf( "%.2f\n", ans );
+
+    printf( "Scenario %d: %.6f\n", cas++, ans );
   }
   return 0;
 }
