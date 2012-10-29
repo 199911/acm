@@ -98,15 +98,12 @@ bool btw( P a, P b, P c ) {
 
 #define N 333
 
-P a[N];
-int n;
-
 bool comp( const P &a, const P &b ) {
 	double crx = a ^ b;
 	return crx > EPS || ( crx > -EPS && a.mag2() < b.mag2() );
 }
 
-double sweep( P tp ) {
+double sweep( P a[], int n, P tp ) {
 	P c[N];
 	int cn = 0;
 	double ret = 0.0, dp[N][N];
@@ -127,7 +124,7 @@ double sweep( P tp ) {
 		int ev[N], nev = 0;
 
 		while( j >= 0 ) {
-			double v = 0.5 * ( c[i] ^ c[j] );
+			double v = 0.5 * ( c[j] ^ c[i] );
 			int k = j - 1;
 			while( k >= 0 && Ccw( c[i], c[j], c[k] ) ) k--;
 			if ( k >= 0 ) v += dp[j][k];
@@ -145,16 +142,26 @@ double sweep( P tp ) {
 					dp[i][ev[j]] = dp[i][ev[j + 1]];
 	}
 
+//	printf( "%f\n", ret );
+
 	return ret;
 }
 
 double LargestEmptyConvPoly( P p[], int n ) {
 	double ans = 0.0;
 	for( int i = 0; i < n; i++ ) 
-		ans = max( ans, sweep( p[i] ) );
+		ans = max( ans, sweep( p, n, p[i] ) );
 	return ans;
 }
 
 int main() {
+	int T, n;
+	P p[N];
+	scanf( "%d", &T );
+	while ( T-- ) {
+		scanf( "%d", &n );
+		for( int i = 0; i < n; i++ ) p[i].eat();
+		printf( "%.1f\n", LargestEmptyConvPoly( p, n ) );
+	}
 	return 0;
 }

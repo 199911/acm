@@ -56,8 +56,8 @@ struct P {
 	P operator*( const double s ) const { return P( x * s, y * s ); }
 	double operator*( const P p ) const { return x * p.x + y * p.y; }
 	double operator^( const P p ) const { return x * p.y - y * p.x; }
-  bool operator<( const P p ) const { return x != p.x ? x < p.x : y < p.y; }
-  bool operator==( const P p ) const { return feq( x, p.x ) && feq( y, p.y ); }
+	bool operator<( const P p ) const { return x != p.x ? x < p.x : y < p.y; }
+	bool operator==( const P p ) const { return feq( x, p.x ) && feq( y, p.y ); }
 
 	double mag() { return sqrt( x * x + y * y ); }
 	double mag2() { return x * x + y * y; }
@@ -123,17 +123,18 @@ void MinEnclosingBall( P p[], int n, P &ctr, double &r ) {
 
 #define N 22222
 
-double r;
+double r, R;
 int n;
 P p[N], ctr;
 
 int main() {
-	scanf( "%d", &n );
-	for( int i = 0; i < n; i++ ) 
-		p[i].eat();
-	MinEnclosingBall( p, n, ctr, r );
-	ctr.out();
-	puts( "" );
-	printf( "%f\n", r );
+	while( scanf( "%d", &n ), n ) {
+		for( int i = 0; i < n; i++ ) 
+			p[i].eat();
+		scanf( "%lf", &R );
+		MinEnclosingBall( p, n, ctr, r );
+		if ( R > r - EPS ) puts( "The polygon can be packed in the circle." );
+		else puts( "There is no way of packing that polygon." );
+	}
 	return 0;
 }

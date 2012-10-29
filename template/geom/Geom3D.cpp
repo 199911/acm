@@ -48,15 +48,31 @@ struct P {
 	double x, y, z;
 	P() {}
 	P( double x, double y, double z ) : x(x), y(y), z(z) {}
-	void eat() { scanf( "%lf%lf%lf", &x, &y, &z; ) }
+	void eat() { scanf( "%lf%lf%lf", &x, &y, &z ); }
 	void out() { printf( "( %3.f, %3.f, %.3f ) ", x, y, z ); }
 
 	P operator+( P p ) { return P( x + p.x, y + p.y, z + p.z ); }
 	P operator-( P p ) { return P( x - p.x, y - p.y, z - p.z ); }
 	P operator*( double s )  { return P( x * s, y * s, z * s ); }
-	double operator*( P p ) { return x * p.x + y * p.y + z * p.z
+	double operator*( P p ) { return x * p.x + y * p.y + z * p.z; }
+	P operator^( P p ) { return P( y * p.z - z * p.y, z * p.x - x * p.z, x * p.y - y * p.x); } 
 
+	double mag() { return sqrt( x * x + y * y + z * z ); }
+	double mag2() { return x * x + y * y + z * z; }
+
+	P nor() { return * this * ( 1.0 / mag() ); }
 };
+
+// plane-plane intersection
+// assume plane is given by n * x = h
+bool ppi( P n1, double h1, P n2, double h2, P &r1, P &r2 ) {
+	if ( ( n1 ^ n2 ).mag() < EPS ) return false;
+	P nr = n1 ^ n2;
+	double c1 = ( h1 - n1 * n2 * h2 ) / ( 1 - ( n1 * n2 ) * ( n1 * n2 ) ), c2 = ( h2 - n1 * n2 * h1 ) / ( 1 - ( n1 * n2 ) * ( n1 * n2 ) );
+	r1 = n1 * c1 + n2 * c2;
+	r2 = r1 + nr.nor();
+	return true;
+}
 
 int main() {
 	return 0;
