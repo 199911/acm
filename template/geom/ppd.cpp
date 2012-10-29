@@ -142,10 +142,7 @@ double ppd1(P p1[], int n1, P p2[], int n2) {
 }
 
 double ppd( P p1[], int n1, P p2[], int n2) {
-	double ans1, ans2;
-	ans1 = ppd1(p1, n1, p2, n2);
-	ans2 = ppd1(p2, n2, p1, n1);
-	return min(ans1, ans2);
+	return min( ppd1(p1, n1, p2, n2), ppd1(p2, n2, p1, n1) );
 }
 
 int main() {
