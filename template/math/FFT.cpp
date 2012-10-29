@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <ccomplex>
 #include <cstring>
 #include <cstdlib>
 #include <cmath>
@@ -34,14 +35,38 @@ using namespace std;
 #define gmin(a,b) { if ( b < a ) a = b; }
 #define gmax(a,b) { if ( b > a ) a = b; }
 
-typedef complex<double> CPX;
+#define CPX complex<double>
 
-void fft( CPX a[], int n, CPX b[], int bInv ) {
+const double PI = atan( 1.0 ) * 4;
+
+void fft( CPX *x, int n, CPX *y, int bInv ) {
   if ( n == 1 ) { 
     y[0] = x[0];
   } else {
     CPX * xeven = new CPX[n / 2], * xodd = new CPX[n / 2], w( 1, 0 );
-    CPX * yeven = new CPX[n / 2], * yodd = new CPX[n / 2], w( 1, 0 );
+    CPX * yeven = new CPX[n / 2], * yodd = new CPX[n / 2], wn;
+
+    if ( bInv ) wn = CPX( cos( - 2 * PI / n ), sin( - 2 * PI / n ) );
+    else wn = CPX( cos( 2 * PI / n ), sin( 2 * PI / n ) );
+
+    for( int i = 0; i < n / 2; i++ ) {
+      xeven[i] = x[i * 2];
+      xodd[i] = x[i * 2 + 1];
+    }
+
+    fft( xeven, n / 2, yeven, bInv );
+    fft( xodd, n / 2, yodd, bInv );
+
+    for( int i = 0; i < n / 2; i++ ) {
+      y[i] = yeven[i] + w * yodd[i];
+      y[i + n / 2] = yeven[i] - w * yodd[i];
+      w *= wn;
+    }
+
+    delete xeven;
+    delete xodd;
+    delete yeven;
+    delete xodd;
   }
 }
 
