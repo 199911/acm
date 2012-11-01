@@ -73,36 +73,6 @@ void build_tree( int p, int lay, int l, int r ) {
   build_tree( p * 2 + 1, lay + 1, mi + 1, r );
 }
 
-void print() {
-  int q[N], qt, qh, ly[N], cur = -1;
-  qt = qh = 0;
-  q[qt++] = 1;
-  ly[1] = 0;
-
-  while ( qt > qh ) {
-    int w = q[qh++];
-    if ( ly[w] > cur ) {
-      cur = ly[w];
-      puts( "" );
-    } 
-    printf( "[" );
-    for ( int i = L[w]; i <= R[w]; i++ ) {
-      printf("%lld(%d)%s", val[cur][i], sum[cur][i], i == R[w] ? "" : ",");
-    }
-    printf( "]" );
-
-
-    if ( L[w] == R[w] || sum[cur][R[w]] == R[w] - L[w] + 1 ) {
-    } else {
-      q[qt++] = 2 * w;
-      ly[2 * w] = cur + 1;
-      q[qt++] = 2 * w + 1;
-      ly[2 * w + 1] = cur + 1;
-    }
-  }
-  puts( "" );
-} 
-
 void build() {
   REP( i, n ) srt[i] = A[i];
   sort( srt, srt + n );

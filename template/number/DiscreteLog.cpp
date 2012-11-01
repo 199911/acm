@@ -3,7 +3,6 @@
 #include <cstdlib>
 #include <cmath>
 #include <ctime>
-#include <cctype>
 #include <algorithm>
 #include <utility>
 #include <numeric>
@@ -15,14 +14,12 @@
 #include <stack>
 #include <iostream>
 #include <iomanip>
-#include <sstream>
 #include <string>
 using namespace std;
 
 #define FOR(i,a,b) for (int i = (a); i < (b); i++)
 #define FOE(i,a,b) for (int i = (a); i <= (b); i++)
 #define FR(i,e) for(__typeof(e.begin()) i = e.begin(); x != e.end(); i++)
-#define SQR(x) ((x)*(x))
 #define REP(i,n) FOR(i,0,n)
 #define CLR(a,b) memset(a, b, sizeof(a))
 #define INF (1<<29)
@@ -33,40 +30,44 @@ using namespace std;
 #define OSS ostringstream
 #define gmin(a,b) { if ( b < a ) a = b; }
 #define gmax(a,b) { if ( b > a ) a = b; }
+#define gm(a,b) (((a)%(b)+(b))%(b))
 
-// generate all primes <= n
-int l, r, ans;
+int egcd( int a, int b, int &s, int &t ) {
+  if ( b == 0 ) { 
+    s = 1; t = 0; 
+    return a;
+  } 
+  LL r = egcd(b, a % b, t, s );
+  t -= ( a / b ) * s;
+  return r;
+}
 
-void seive( int n ) {
-  int B = 1<<16, p[1<<16], pn = 0;
-  bool ip[1<<18];
+int inv( int a, int m ) {
+  int s, t;
+  if ( egcd( a, m, s, t ) > 1 ) return -1;
+  return gm(s,m);
+}
 
-  CLR( ip, 1 );
-  for( int i = 2; i <= B; i++ ) {
-    if ( ip[i] ) {
-      p[pn++] = i;
-      // i is prime
-      for( int j = i + i; j <= B; j += i ) ip[j] = 0;
-    }
+pair<LL,int> amp[100000];
+
+LL dlg( LL a, LL b, LL m ) {
+  LL am = 1, m;
+  pair<LL, int> *j;
+  for( m = 0; m * m < n; m++ ) {
+    amp[m] = make_pair(am, (int)m);
+    am = ( am * a ) % n;
   }
-
-  for( int st = B + 1, en = B + B; st <= n; st += B, en += B ) {
-    CLR( ip, 1 ); 
-    for( int i = 0; i < pn; i++ ) {
-      int pt = ( st + p[i] - 1 ) / p[i] * p[i]; 
-      while ( pt <= en ) ip[pt - st] = 0, pt += p[i];
-    }
-    for( int i = st; i <= en; i++ ) 
-      if ( ip[i - st] ) {
-        // i is prime
-      }
+  sort( amp, amp + m );
+  am = inv( am, n );
+  for( int i = 0; i <= m; i++ ) {
+    j = lower_bound( amp, amp + m, make_pair( b, -1 ) );
+    if ( j !+ amp + m && j->first == b ) 
+      return i * m + j->second;
+    b = b * am % n;
   }
+  return -1;
 }
 
 int main() {
-  cin >> l >> r;
-  ans = 0;
-  seive( r );
-  printf( "%d\n", ans );
   return 0;
 }
