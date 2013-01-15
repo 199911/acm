@@ -40,13 +40,54 @@ LL exp( LL a, LL b, LL c ) {
     a = a * a % c;
     b >>= 1;
   }
+  return ret;
 }
 
 // assume p is a prime
-LL legendre( P a, P p ) {
-  return expo( a, ( p - 1 ) / 2, p );
+LL legendre( LL a, LL p ) {
+  return exp( a, ( p - 1 ) / 2, p );
+}
+
+LL Tonelli( LL a, LL p ) {
+  a %= p;
+  if ( legendre( a, p ) != 1 ) return -1;
+  LL Q = p - 1, S = 0;
+  while( Q % 2 == 0 ) Q /= 2, S++;
+  if ( S == 1 ) {
+    LL ret = exp( a, ( p + 1 ) / 4, p );
+    return min( p - ret, ret );
+  }
+  LL z = 1;
+  while( legendre( z, p ) != p - 1 ) z++;
+  LL c = exp( z, Q, p ), R = exp( a, (Q + 1) / 2, p ), t = exp( a, Q, p ), M = S;
+  while( t !=1 ) {
+    LL i = 1;
+    while( exp( t, 1LL << i, p ) != 1 ) i++;
+    LL b = exp( c, 1LL << ( M - i - 1 ), p );
+    R = R * b % p;
+    c = b * b % p;
+    t = t * c % p;
+    M = i;
+  }
+  return min( R, p - R );
 }
 
 int main() {
+  LL n, a, p;
+  scanf( "%lld", &n );
+  while( n-- ) {
+    scanf( "%lld%lld", &a, &p );
+    if ( p == 2 ) {
+      if ( a == 0 ) printf( "0\n" );
+      else printf( "1\n" );
+    } else {
+      LL ans = Tonelli( a, p );
+      if ( ans < 0 ) {
+        printf( "No root\n" );
+      } else {
+        printf( "%lld %lld\n", ans, p - ans );
+      }
+    }
+  }
   return 0;
 }

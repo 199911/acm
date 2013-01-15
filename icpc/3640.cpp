@@ -70,78 +70,45 @@ struct P {
 	P rot( double th ) { return rot( sin( th ), cos( th ) ); }
 };
 
-double area(P a, P b, P c) {
-	return 0.5 * ( ( b - a ) ^ ( c - a ) );
+#define N 555
+
+double ps[N], lw[N][N], L, x[N], y[N];
+int n, tc;
+
+double cut( double l, double r ) {
+  int a = lower_bound( x, x + n + 1, l ) - x, b = upper_bound( x, x + n + 1, r ) - x - 1; 
+  double ly, ry;
+  ly = y[a - 1] + ( l - x[a - 1] ) * ( y[a] - y[a - 1] ) / ( x[a] - x[a - 1] );
+  ry = y[b] + ( r - x[b] ) * ( y[b + 1] - y[b] ) / ( x[b + 1] - x[b] );
+  double ans = ps[b] - ps[a], fe = lw[a][b];
+  ans += ( x[a] - l ) * ( y[a] + ly ) * 0.5;
+  ans += ( r - x[b] ) * ( x[b] + ry ) * 0.5;
+  fe = min( fe, min( ly, ry ) );
+  ans -= fe * ( r - l );
+
+  return ans;
 }
 
-bool ccw( P a, P b, P c ) {
-  return fge( area( a, b, c ), 0.0 );
-}
-
-bool Ccw( P a, P b, P c ) {
-  return fgt( area( a, b, c ), 0.0 );
-}
-
-bool btw( P a, P b, P c ) {
-	if ( !feq( ( b - a ) ^ ( c - a ), 0.0 ) ) return 0;
-	double s = ( b - a ) * ( c - a );
-	return fge( s, 0.0 ) && fle( s, ( c - a ).mag2() );
-}
-
-// assume p is convex given in ccw order
-void hull( P p[], int n, P h[], int &hn ) {
-	hn = 0;
-	sort( p, p + n );
-
-	for( int i = 0; i < n; i++ ) {
-		while ( hn >= 2 && !Ccw( h[hn - 2], h[hn - 1], p[i] ) ) hn--;
-		h[hn++] = p[i];
-	}
-
-	for( int i = n - 1, s = hn; i > 0; i-- ) {
-		while ( hn > s && !Ccw( h[hn - 2], h[hn - 1], p[i] ) ) hn--;
-		h[hn++] = p[i];
-	}
-}
-
-double ConvexPolyDiameter( P p[], int n, P &a, P &b ) {
-	double ret = 0.0;
-	if ( n == 1 ) { a = b = p[0]; return 0.0; }
-	if ( n == 2 ) { a = p[0]; b = p[1]; return ( b - a ).mag(); }
-
-	for( int i = 0, j = 0; i < n; i++ ) {
-		if ( ret < ( p[i] - p[j] ).mag2() ) {
-			ret = ( p[i] - p[j] ).mag2();
-			a = p[i]; b = p[j];
-		}
-		double cur = ( p[(i + 1) % n] - p[i] ) ^ ( p[j] - p[i] ), last = cur;
-		while (  j < n && ( cur = ( p[( i + 1 ) % n] - p[i] ) ^ ( p[(j + 1 ) % n] - p[i] ) ) > last + EPS  ){
-			j = ( j + 1 ) % n;
-			if ( ret < ( p[i] - p[j] ).mag2() ) {
-				a = p[i]; b = p[j];
-				ret = ( p[i] - p[j] ).mag2();
-			}
-		}
-	}
-	
-	return sqrt( ret );
-}
-
-#define N 222222
-
-double FarthestPair( P p[], int n, P &a, P &b ) {
-	P h[N];
-	int hn;
-	hull( p, n, h, hn );
-	return ConvexPolyDiameter( h, hn, a, b );
-}
 
 int main() {
-	P p[N], a, b;
-	int n;
-	scanf( "%d", &n );
-	REP( i, n ) p[i].eat();
-	double ret = FarthestPair( p, n, a, b );
-	printf( "%.0f\n", ret * ret );
+  scanf( "%d", &tc );
+  while( tc-- ) {
+    scanf( "%d%lf", &n, &L );
+    for( int i = 0; i < n; i++ ) 
+      scanf( "%lf%lf", &x[i], &y[i] );
+    x[n] = 1e10;
+    ps[0] = 0.0;
+    for( int i = 1; i < n; i++ ) { 
+      ps[i] = ps[i - 1] + ( x[i] - x[i - 1] ) * ( y[i] + y[i - 1] ) * 0.5;
+      lw[i][i] = y[i];
+    }
+
+    for( int l = 1; l < n; l++ ) 
+      for( int i = 0; i < n - l; i++ ) 
+        lw[i][i + l] = min( lw[i][i + l - 1], y[i] );
+
+    for( int i = 0, j = 0; j < n;  
+
+  }
 	return 0;
 }

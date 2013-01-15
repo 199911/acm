@@ -36,6 +36,17 @@ using namespace std;
 #define gmin(a,b) { if ( b < a ) a = b; }
 #define gmax(a,b) { if ( b > a ) a = b; }
 
+LL n, d, a[111111];
+LL ans;
+
 int main() {
+  cin >> n >> d;
+  REP( i, n ) cin >> a[i];
+  ans = 0;
+  for( int i = 0, j = 0; i < n; i++ ) {
+    while( j < n - 1 && a[j + 1] - a[i] <= d ) j++;
+    if ( j > i + 1 ) ans += (LL)( j - i ) * ( j - i - 1 ) / 2;
+  }
+  cout << ans << endl;
   return 0;
 }

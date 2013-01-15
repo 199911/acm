@@ -32,6 +32,10 @@ using namespace std;
 #define gmax(a,b) { if ( b > a ) a = b; }
 #define gm(a,b) (((a)%(b)+(b))%(b))
 
+LL gcd( LL a, LL b ) {
+  return b ? gcd( b, a % b ) : a;
+}
+
 int egcd( int a, int b, int &s, int &t ) {
   if ( b == 0 ) { 
     s = 1; t = 0; 
@@ -50,7 +54,7 @@ int inv( int a, int m ) {
 
 pair<LL,int> amp[100000];
 
-LL dlg( LL a, LL b, LL m ) {
+LL dlg( LL a, LL b, LL n ) {
   LL am = 1, m;
   pair<LL, int> *j;
   for( m = 0; m * m < n; m++ ) {
@@ -59,15 +63,36 @@ LL dlg( LL a, LL b, LL m ) {
   }
   sort( amp, amp + m );
   am = inv( am, n );
+  b %= n;
   for( int i = 0; i <= m; i++ ) {
     j = lower_bound( amp, amp + m, make_pair( b, -1 ) );
-    if ( j !+ amp + m && j->first == b ) 
+    if ( j != amp + m && j->first == b ) 
       return i * m + j->second;
-    b = b * am % n;
+    b = ( b * am ) % n;
   }
   return -1;
 }
 
+LL gdlg( LL a, LL b, LL n ) {
+  LL tn = n, am = 1, g, i;
+  while( ( g = gcd( a, tn ) ) > 1 ) tn /= g;
+  for( i = 0; ( 1LL << i ) <= n; i++ ) {
+    if ( am == b ) return i;
+    am = ( am * a ) % n;
+  }
+  if ( b % ( n / tn ) ) return -1;
+  LL r = dlg( a, b * inv( am, tn ), tn );
+  if ( r < 0 ) return -1;
+  return r + i;
+}
+
+LL a, b, n, ans;
+
 int main() {
+  while( scanf( "%lld%lld%lld", &n, &a, &b ) != EOF ) {
+    LL ans = gdlg( a, b, n );
+    if ( ans < 0 ) puts( "no solution" );
+    else printf( "%lld\n", ans );
+  }
   return 0;
 }
