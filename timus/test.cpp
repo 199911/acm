@@ -11,6 +11,8 @@
 #include <utility>
 #include <list>
 #include <set>
+#include <bitset>
+#include <map>
 #include <queue>
 #include <stack>
 #include <iostream>
@@ -33,20 +35,6 @@ using namespace std;
 #define OSS ostringstream
 #define gmin(a,b) { if ( b < a ) a = b; }
 #define gmax(a,b) { if ( b > a ) a = b; }
-
-#define N 111111
-
-struct Node {
-  Node *child[2], *parent;
-  int mn, mx, sz, key, val, left;
-
-  Node() {}
-  Node( int key, int val ): key(key), mn(val), mx(val), val(val), sz(1), left(0) { child[0] = child[1] = parent = NULL; }
-
-  void update() {
-    mn = min( val, min( child[0] ? child[0]->mn : val, child[1] ? child[1]->mn : val ) );
-  }
-} T[N];
 
 int main() {
   return 0;
