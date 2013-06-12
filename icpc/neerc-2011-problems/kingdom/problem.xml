@@ -1,0 +1,22 @@
+
+<problem
+    id      = "neerc-2011.kingdom"
+    version = "1.0"
+>
+    <judging>
+        <script type = "%icpc">
+            <testset
+                test-count   = "82"
+                input-href   = "tests/##"
+                answer-href  = "tests/##.a"
+                input-name   = "kingdom.in"
+                output-name  = "kingdom.out"
+                time-limit   = "3s"
+                memory-limit = "536870912"
+            />
+            <verifier type = "%testlib">
+                <binary executable-id = "java.check" file = "Check.jar" />
+            </verifier>
+        </script>
+    </judging>
+</problem>

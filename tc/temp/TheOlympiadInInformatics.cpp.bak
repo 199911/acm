@@ -1,0 +1,62 @@
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
+#include <ctime>
+#include <cctype>
+#include <algorithm>
+#include <utility>
+#include <numeric>
+#include <functional>
+#include <utility>
+#include <list>
+#include <set>
+#include <bitset>
+#include <map>
+#include <queue>
+#include <stack>
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+#include <string>
+using namespace std;
+
+#define FOR(i,a,b) for (int i = (a); i < (b); i++)
+#define FOE(i,a,b) for (int i = (a); i <= (b); i++)
+#define FR(i,e) for(__typeof(e.begin()) i = e.begin(); x != e.end(); i++)
+#define SQR(x) ((x)*(x))
+#define REP(i,n) FOR(i,0,n)
+#define CLR(a,b) memset(a, b, sizeof(a))
+#define INF (1<<29)
+#define LL long long
+#define PII pair<int,int>
+#define PDI pair<double,int>
+#define ISS istringstream
+#define OSS ostringstream
+#define gmin(a,b) { if ( b < a ) a = b; }
+#define gmax(a,b) { if ( b > a ) a = b; }
+
+struct TheOlympiadInInformatics { 
+  int find(vector <int> sums, int k) { 
+
+  } 
+  
+// BEGIN CUT HERE
+	public:
+	void run_test(int Case) { if ((Case == -1) || (Case == 0)) test_case_0(); if ((Case == -1) || (Case == 1)) test_case_1(); if ((Case == -1) || (Case == 2)) test_case_2(); if ((Case == -1) || (Case == 3)) test_case_3(); }
+	private:
+	template <typename T> string print_array(const vector<T> &V) { ostringstream os; os << "{ "; for (typename vector<T>::const_iterator iter = V.begin(); iter != V.end(); ++iter) os << '\"' << *iter << "\","; os << " }"; return os.str(); }
+	void verify_case(int Case, const int &Expected, const int &Received) { cerr << "Test Case #" << Case << "..."; if (Expected == Received) cerr << "PASSED" << endl; else { cerr << "FAILED" << endl; cerr << "\tExpected: \"" << Expected << '\"' << endl; cerr << "\tReceived: \"" << Received << '\"' << endl; } }
+	void test_case_0() { int Arr0[] = {4, 7, 0, 5}; vector <int> Arg0(Arr0, Arr0 + (sizeof(Arr0) / sizeof(Arr0[0]))); int Arg1 = 0; int Arg2 = 7; verify_case(0, Arg2, find(Arg0, Arg1)); }
+	void test_case_1() { int Arr0[] = {4, 7}; vector <int> Arg0(Arr0, Arr0 + (sizeof(Arr0) / sizeof(Arr0[0]))); int Arg1 = 2; int Arg2 = 3; verify_case(1, Arg2, find(Arg0, Arg1)); }
+	void test_case_2() { int Arr0[] = {999999999}; vector <int> Arg0(Arr0, Arr0 + (sizeof(Arr0) / sizeof(Arr0[0]))); int Arg1 = 1000000000; int Arg2 = 0; verify_case(2, Arg2, find(Arg0, Arg1)); }
+	void test_case_3() { int Arr0[] = {95, 23, 87, 23, 82, 78, 59, 44, 12}; vector <int> Arg0(Arr0, Arr0 + (sizeof(Arr0) / sizeof(Arr0[0]))); int Arg1 = 70; int Arg2 = 6; verify_case(3, Arg2, find(Arg0, Arg1)); }
+
+// END CUT HERE
+ 
+}; 
+
+int main() {
+  TheOlympiadInInformatics ___test; 
+  ___test.run_test(-1); 
+} 

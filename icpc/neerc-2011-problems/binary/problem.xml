@@ -1,0 +1,22 @@
+
+<problem
+    id      = "neerc-2011.binary"
+    version = "1.0"
+>
+    <judging>
+        <script type = "%icpc">
+            <testset
+                test-count   = "50"
+                input-href   = "tests/##"
+                answer-href  = "tests/##.a"
+                input-name   = "binary.in"
+                output-name  = "binary.out"
+                time-limit   = "3s"
+                memory-limit = "536870912"
+            />
+            <verifier type = "%testlib">
+                <binary executable-id = "java.check" file = "Check.jar" />
+            </verifier>
+        </script>
+    </judging>
+</problem>

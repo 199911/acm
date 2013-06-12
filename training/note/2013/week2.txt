@@ -1,0 +1,152 @@
+CUHK ACM Training 2013
+
+Week 2: Dynamic Programming and Shortest Path
+
+Outline:
+
+1. Basis of DP: Motivation, Idea, Components
+2. Examples
+
+
+Notes:
+
+1. Basis of Dynamic Programming.
+	DP is a algorithm design technique applied to a set of optimization problems that possess the following set of properties:
+		(1) the optimal solution of the problem can be computed from the optimal solution to a set of (same) subproblems. 
+				e.g. Fibonacci number: F(n) can be computed from F(n - 1) and F(n - 2)
+		(2) Subproblems can overlap when you compute different super-problem
+				e.g. Both F(n + 1) and F(n + 2) rely on F(n)
+		(3) When you compute the solution of super-problem, you only care about "what" the solution to the subproblem is, rather than "how" you obtain the solution.
+
+	Formally, they're known as (1) Optimal Substructure (2) Overlapping Subproblems (3) Memoryless 
+
+	Idea of DP:
+		A direct recursive algorithm will often result in exponential running time:
+		----------------------------------------
+			long long f( int n ) {
+				if ( n == 1 || n == 2 ) return 1;
+				return f(n - 1) + f(n - 2);
+			}
+		----------------------------------------
+		This is because redundancy in computing overlapping subproblem. A simple strategy is to bookmark the solution we've computed before
+
+		----------------------------------------
+		long long memo[N];
+
+		long long f( int n ) {
+			if ( memo[i] > 0 ) return memo[i];
+
+			long long ret = 0;
+			if ( n == 1 || n == 2 ) ret = 1;
+			else ret = f( n - 1 ) + f( n - 2 );
+
+			return memo[n] = ret;
+		}
+		----------------------------------------
+
+		the "Programming" in DP does not refer to computer program, but this tabular method.
+
+		We can also do it bottom-up
+
+		----------------------------------------
+		long long f[N];
+
+		f[1] = f[2] = 1;
+		for( int i = 3; i <= n; i++ ) 
+			f[i] = f[i - 1] + f[i - 2];
+		----------------------------------------
+
+2. A Few Textbook Example
+	2.1 SUBSET SUM
+		Problem: 
+			Given an integer set S = { s1, s2, ... , sn }, is there a subset of S whose sum is K ?
+		Solution:
+			DP[i][j] = is there a subset of { s1, s2, ... , si } whose sum is j?
+
+		Homework:
+			http://community.topcoder.com/stat?c=problem_statement&pm=1166&rd=4705
+
+	2.2 LONGEST COMMON SUBSEQUENCE
+		Problem:
+			Given two string s[0...m - 1], t[0...n - 1], find their longest common substring. A subsequence of s is < s[i1], s[i2], ... s[ik] > where 0 <= i1 < i2 < ... < ik <= n
+		Solution:
+			DP[i][j] = the length of longest common subsequence of s[0...i], t[0...j]
+		Furthernote:
+			(1) Backtracking
+			(2) longest increasing subsequence
+
+	2.3 SINGLE SOURCE LONGEST/SHORTEST PATH ON DAG
+		Problem: 
+			Given a directed acyclic graph, and a source vertex s, find the shortest/longest path from s to every other node.
+		Solution:
+			DP[v] = longest/shortest path to v.
+		Question: 
+			On general graph?
+
+	2.4 KNAPSACK
+		Problem:
+			Given n object with weight wi and value vi, find a subset of object whose weight does not exceed W and maximize their value.
+		Solution:
+			DP[i][j] = the maximum value of the subset whose weight is j taken from first i objects.
+
+	2.5 EDIT DISTANCE
+		Problem: 
+			Given two string s[0 ... n - 1], t[0...m - 1] and the following (weighted) operation
+				(a) insert(i,c): insert c into position i of s
+				(b) delete(i): delete the character on position i of s
+				(c) swap(i,c): change the character on position i of s to c
+			Find the minimum size(weight), i.e. the edit distance from s to t, sequence of operation that transform s into t
+		Solution:
+			DP[i][j] = edit distance from s[0 ... i] to t[0 ... j]
+
+	2.6 More Example can be found on 
+		(1) CLRS Introduction to Algorithm. 
+		(2) Note of Algorithm by NTNU: http://www.csie.ntnu.edu.tw/~u91029/
+		(3) Topcoder: http://www.topcoder.com/tc?d1=tutorials&d2=dynProg&module=Static
+
+3. More Difficult Examples:
+	3.1 Tiling
+		How many way can you tile a 3*n grid with 1*2 tiles?
+
+	3.2 Travelling salesman problem
+		Given a graph, find a shortest cycle that visit each node exactly once.
+
+	3.3 Addition
+		Given a string of 0...9, add m '+' into the string such that the result is minimum
+
+	3.4 More: 
+		http://appsrv.cse.cuhk.edu.hk/~acmprog/training/2011summer/week5/dplist.html
+
+
+4. More DP-type
+	4.1 DP on Interval
+		Given a string s[0...n-1], find the fewest insert operation necessary to make it a parlindrome
+
+	4.2 DP on Tree
+		Given a tree T, color as many node as you can black without color two adjacent node black
+
+	4.3 DP on Subset
+		Given a long but narrow grid, like 10 * 1000000, with some grid blocked, how many ways of putting knight in the grid such that every two knights don't attack each other?
+
+4. Further Note
+	4.1 Order of Subproblems:
+		* Shortest Path on General Graph:
+				sp[u] = min_{v, there exist an edge (v, u) }{ sp[v] + w(v, u)}
+		* Shortest Path can be solved by DP? NO.
+				Because of the presence of cycles.
+
+		In DP, the dependence relation on all subproblems forms a directed acyclic graph.
+
+		What to do when there's cycle?
+			We shall discuss it next in lecture or in next section (if you like).
+
+	4.2 Top-Down vs Bottom Up Approach
+		* When there's a clear order of subproblem that you can compute one after another, you can use a bottom up approach to compute the optimal solution to subproblems
+			- Example: Longest Common Subsequence.
+
+		* Sometimes the order is not so clear, and it's difficult to compute the solution with only for-loops. 
+			- Example: Shortest Path on DAG
+
+	4.3 Additional Problems
+		Some problems exhibitting optimal substructure might involve circular dependancy, in which case we cannot find a valid order to compute solution to subproblems. Therefore, intead of DP, a valid strategy is using similar strategy for computing shortest path. 
+

@@ -1,0 +1,22 @@
+
+<problem
+    id      = "neerc-2011.dictionary"
+    version = "1.0"
+>
+    <judging>
+        <script type = "%icpc">
+            <testset
+                test-count   = "22"
+                input-href   = "tests/##"
+                answer-href  = "tests/##.a"
+                input-name   = "dictionary.in"
+                output-name  = "dictionary.out"
+                time-limit   = "3s"
+                memory-limit = "536870912"
+            />
+            <verifier type = "%testlib">
+                <binary executable-id = "java.check" file = "Check.jar" />
+            </verifier>
+        </script>
+    </judging>
+</problem>
