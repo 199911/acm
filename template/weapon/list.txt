@@ -1,0 +1,19 @@
+General Math:
+1. Matrix Exopnentiation (Array)
+2. Java BigInteger/BigDecimal
+3. Joseph Problem
+4. LP
+5. Gaussian Elimination (Rank/Inverse)
+6. Binary Search on Rationals
+7. FFT
+8. Farey Sequence / Rational Approx
+9. Determinant mod M
+
+Number Theory:
+
+Geometry:
+
+Data Structure:
+1. Dancing Link
+2. Splay Tree
+3. Persistent Segment Tree
