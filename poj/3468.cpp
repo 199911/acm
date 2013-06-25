@@ -38,26 +38,35 @@ using namespace std;
 
 struct SplayNode {
 	SplayNode *child[2], *parent;
-	int key, min, max, size, rev;
+	LL key, min, max, size, rev;
+	LL val, sum, add;
 
 	SplayNode() {}
-	SplayNode( int key ): key(key), max(key), min(key), size(1), rev(0) { child[0] = child[1] = parent = NULL; }
+	SplayNode( int key, LL val ): key(key), val(val), max(key), min(key), size(1), rev(0), add(0), sum(val) { child[0] = child[1] = parent = NULL; }
 	~SplayNode() { delete child[0]; delete child[1]; }
 
 	inline void check() {
-		if ( this && rev ) {
+		if ( !this ) return;
+		if ( rev ) {
 			swap( child[0], child[1] );
-			child[0]->rev = !child[0]->rev;
-			child[1]->rev = !child[1]->rev;
+			if ( child[0] ) child[0]->rev = !child[0]->rev;
+			if ( child[1] )child[1]->rev = !child[1]->rev;
 			rev = 0;
 		}
 	}
 
+	inline void split_label() {
+		if ( add ) {
+				
+		}
+	}
+
 	void update() {
-		check();
+		//check();
 		min = child[0] ? child[0]->min : key;
 		max = child[1] ? child[1]->max : key;
 		size = 1 + ( child[0] ? child[0]->size : 0 ) + ( child[1] ? child[1]->size : 0 );
+		sum = val + ( child[0] ? child[0]->sum : 0 ) + ( child[1] ? child[1]->sum : 0 ) + size * add; 
 	}
 
 	void rotate( int right ) {
@@ -81,14 +90,15 @@ struct SplayNode {
 		c->update();
 	}
 
-	void splay( SplayNode *p ) {	// p = supposed father of *this
+	SplayNode* splay( SplayNode *p ) {	// p = supposed father of *this
+		if ( !this ) return this;
 		while( parent != p ) {
 			SplayNode *g = parent->parent;
 			if ( g ) g->check();
 			if ( parent ) parent->check();
 			bool right = this == parent->child[1];
 
-			if ( g ) {
+			if ( g != p ) {
 				bool parentRight = parent == g->child[1];
 
 				if ( right == parentRight ) {
@@ -102,6 +112,7 @@ struct SplayNode {
 				parent->rotate( right );
 			}
 		}
+		return this;
 	}
 
 	SplayNode* extreme( int right ) {
@@ -148,6 +159,7 @@ struct SplayNode {
 	}
 
 	SplayNode *cut( int right ) {
+		check();
 		SplayNode *ret = child[right];
 		if ( ret ) ret->parent = NULL;
 		child[right] = NULL;
@@ -155,16 +167,15 @@ struct SplayNode {
 		return ret;
 	}
 
-	SplayNode *insert( int v ) {
-		check();
+	SplayNode *insert( int k, int v ) {
 		if ( this ) {
-			SplayNode *ptr = search( v );
+			SplayNode *ptr = search( k );
 			if ( ptr ) {
 				ptr->splay( NULL );
 				return ptr;
 			} else {
-				SplayNode *ntr = new SplayNode( v );	
-				SplayNode *p = pred( v );
+				SplayNode *ntr = new SplayNode( k, v );	
+				SplayNode *p = pred( k );
 				if ( p ) { 
 					SplayNode *q = p->cut( true );
 					ntr->join( q, true );
@@ -179,43 +190,76 @@ struct SplayNode {
 				}
 			}
 		} else {
-			return new SplayNode( v );
+			return new SplayNode( k, v );
 		}
 	}
 
 	SplayNode *kth_element( int k ) {
 		if ( !this ) return NULL;
+//		printf( "%d(%d)\n", k, size );
 		check();
 		int t = child[0] ? child[0]->size : 0;
 		if ( k < t ) return child[0]->kth_element( k );
 		else if ( k == t ) return this;
-		else return child[1]->kth_element( k - t - 1);
+		else return child[1]->kth_element( k - t - 1 );
 	}
 
 	void reverse() {
 		rev = !rev;
 	}
 
-	void print( ) {
+	void print( int a ) {
 		check();
-		if ( child[0] ) child[0]->print();
-		printf( "%d ", key );
-		if ( child[1] ) child[1]->print();
+		printf( "(");
+		if ( child[0] ) child[0]->print( a + add );
+		printf( ") %lld:%lld[%lld] (", key, val, add  );
+		if ( child[1] ) child[1]->print( a + add );
+		printf( ")");
 	}
 }; 
 
 int main() {
 	SplayNode *T = NULL;
-	int tmp;
-	while( scanf( "%d", &tmp ), tmp ) {
-		T = T->insert( tmp );
-		T->print();
-		puts( "" );
+	int n, q;
+	scanf( "%d%d", &n, &q );
+	T = T->insert( -1, 0 );
+	T = T->insert( n, 0 );
+	for( int i = 0; i < n; i++ ) {
+		LL tmp;
+		scanf( "%lld", &tmp );
+		T = T->insert( i, tmp );
 	}
 
-	while( scanf( "%d", &tmp ), tmp >= 0 ) {
-		SplayNode *ptr = T->kth_element( tmp );
-		printf( "%d th element: %d\n", tmp, ptr ? ptr->key : -1 );
+	for( int i = 0; i < q; i++ ) {
+		char str[11];
+		scanf( "%s", str );
+		if ( str[0] == 'C' ) {
+			int a, b;
+			LL c;
+			scanf( "%d%d%lld", &a, &b, &c );
+			SplayNode *pa = T->kth_element( a - 1 ), *pb = T->kth_element( b + 1 );
+
+			T = pa->splay( NULL );
+			pb->splay( pa );
+
+			SplayNode *pc = pb->child[0];
+			pc->add += c;
+			pc->update();
+		} else {
+			int a, b;
+			scanf( "%d%d", &a, &b );
+			SplayNode *pa = T->kth_element( a - 1 ), *pb = T->kth_element( b + 1 );
+
+			T = pa->splay( NULL );
+			pb->splay( pa );
+
+			pb->check();
+			SplayNode *pc = pb->child[0];
+
+			pc->update();
+			int size = pb->child[0]->size;
+			printf( "%lld\n", pb->child[0]->sum + pa->add * size + pb->add * size + pc->add * size );
+		}
 	}
 
 	return 0;
