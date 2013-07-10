@@ -72,27 +72,34 @@ bool lli( P a, P b, P c, P d, P &res ) {
 
 // segment segment intersection
 bool ssi(P a, P b, P c, P d, P &res) {
-  if( ! lli(a, b, c, d, res) ) {
-    return false;
-  } else {
-    if( btw(a, res, b) && btw(c, res, d) ) {
-      return true;
-    } else {
-      return false;
-    }
-  }
+  if( ! lli(a, b, c, d, res) ) return false;
+  else 
+    if( btw(a, res, b) && btw(c, res, d) ) 
+      return true; else return false;
 }
 
 bool btw( P a, P b, P c ) {
-	return feq( ( b - a ).mag() + ( c - b ).mag(), ( a - c ).mag() );
+  if ( fabs((b - a)^(c - a)) > EPS ) return false;
+  return (b - a)*(c - a) > -EPS && (b - a)*(c - a)<(c - a).mag2() + EPS
 }
 
 double parea( P p[], int n ) {
   double ret = 0;
-  REP( i, n ) 
-    ret += area( p(0.0, 0.0), p[i], p[(i + 1) % n]);
-  return fabs( ret );
+  REP( i, n ) ret += p[i]^p[(i + 1)%n];
+  return 0.5* fabs( ret );
 }
+
+bool up( P a ) { return a.y == 0 ? a.x > 0: a.y > 0; }
+
+int inpoly( P p[], int n, P a ) {
+  int ans = 0;
+  for( int i = 0; i < n; i++ ) 
+    if (up(p[i] - a) ^ up(p[(i+1)%n] - a) )
+      ans += ccw( a, p[i], p[(i + 1) % n]) ? 1 : -1;
+  return ans;
+}
+
+
 
 int main() {
 	return 0;
