@@ -104,22 +104,14 @@ void init() {
   sz = 4;
 }
 
-void hpi(P a, P b) {
-   int _sz = 0;
-   P cur[N], e;
+void hpi(P a, P b, P res[], int &sz) {
+   int _sz = 0; P cur[N], e;
 
    REP(i, sz) {
-     if( ccw(a, b, res[i]) ) {
-       cur[_sz++] = res[i];
-     }
-     if( lsi(a, b, res[i], res[(i+1)%sz], e) ) {
-       cur[_sz++] = e;
-     } 
+     if( ccw(a, b, res[i]) ) cur[_sz++] = res[i];
+     if( lsi(a, b, res[i], res[(i+1)%sz], e) ) cur[_sz++] = e;
    }
-
-   REP(i, _sz) {
-     res[i] = cur[i];
-   }
+   REP(i, _sz) res[i] = cur[i];
    sz = _sz;
 }
 
