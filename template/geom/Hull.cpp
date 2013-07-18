@@ -67,10 +67,11 @@ int hull(P p[], int n, P ch[], int &hn){
 		while( hn >= 2 && !Ccw(ch[hn - 2], ch[hn - 1], p[i]) ) hn--;
 		ch[hn++] = p[i];
 	}
-	for(int S = hn, i = n - 2; i > 0; i--) {
+	for(int S = hn, i = n - 2; i >= 0; i--) {
 		while( hn > S && hn >= 2 && !Ccw( ch[hn - 2], ch[hn - 1], p[i])) hn--;
 		ch[hn++] = p[i];
 	}
+  hn--;
 }
 
 int main() {

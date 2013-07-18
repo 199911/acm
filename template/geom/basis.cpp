@@ -34,8 +34,8 @@ struct P {
 	P operator*( double s ) { return P( x * s, y * s ); }
 	double operator*( P p ) { return x * p.x + y * p.y; }
 	double operator^( P p ) { return x * p.y - y * p.x; }
-  bool operator<( const P p ) const { return x != p.x ? x < p.x : y < p.y; }
-  bool operator==( const P p ) const { return feq( x, p.x ) && feq( y, p.y ); }
+  bool operator<( const P &p ) const { return x != p.x ? x < p.x : y < p.y; }
+  bool operator==( const P &p ) const { return feq( x, p.x ) && feq( y, p.y ); }
 
 	double mag() { return sqrt( x * x + y * y ); }
 	double mag2() { return x * x + y * y; }
@@ -85,7 +85,8 @@ bool btw( P a, P b, P c ) {
 
 double parea( P p[], int n ) {
   double ret = 0;
-  REP( i, n ) ret += p[i]^p[(i + 1)%n];
+  for( int i = 0; i < n; i++ ) 
+    ret += p[i]^p[(i + 1)%n];
   return 0.5* fabs( ret );
 }
 
@@ -99,6 +100,14 @@ int inpoly( P p[], int n, P a ) {
   return ans;
 }
 
+int inpoly( P p[], int n, P a ) {
+  double ang = 0;
+  for( int i = 0; i < n; i++ ) {
+    P s = p[i] - a, t = p[( i + 1 ) % n] - a;
+    ang += atan2( s ^ t, s * t );
+  }
+  return fabs( ang ) > 1;
+}
 
 
 int main() {
