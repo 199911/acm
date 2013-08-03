@@ -50,7 +50,7 @@ int inv( int a, int p ) {
 	return exp( a, p - 2, p );
 }
 
-int rank( int A[1200][1200], int m, int n, int p ) {
+int rank( int A[666][666], int m, int n, int p ) {
 	int rnk = 0;
 	for( int i = 0, row = 0; i < n && row < m; i++ ) {
 		if ( A[row][i] == 0 ) 
@@ -78,12 +78,13 @@ int rank( int A[1200][1200], int m, int n, int p ) {
 	return rnk;
 }
 
-int C[1200][1200];
+int C[666][666];
 
-int linear_matroid_intersect( int A[1200][1200], int B[1200][1200], int m, int n, int r ) {
-	int rnd[1200];
+int linear_matroid_intersect( int A[666][666], int B[666][666], int m, int n, int r ) {
+  printf( "%d %d:", n, m );
+	LL rnd[666];
 	int ans = -1;
-
+  LL sum = 0;
 	if ( m > n ) {
 		swap( A, B );
 		swap( m, n );
@@ -92,16 +93,19 @@ int linear_matroid_intersect( int A[1200][1200], int B[1200][1200], int m, int n
 	for( int i = 0; i < r; i++ ) rnd[i] = rand() % MOD;
 	for( int i = 0; i < m; i++ ) {
 		for( int j = 0; j < n; j++ ) {
-			C[i][j] = 0;
-			for( int k = 0; k < r; k++ ) 
-				( C[i][j] += A[i][k] * rnd[k] % MOD * B[j][k] % MOD ) %= MOD;
+			sum = 0;
+			for( int k = 0; k < r; k++ )  {
+        if ( A[i][k] && B[j][k] )
+				  ( sum += A[i][k] * rnd[k] * B[j][k] );
+      }
+      C[i][j] = sum % MOD;
 		}
 	}
 	return rank( C, m, n, MOD );
 }
 
 int R, r, m, n, k, a[333], b[333], c[333], d[333], srt[1222], mp[11111];
-int A[1200][1200], B[1200][1200];
+int A[666][666], B[666][666];
 
 int main() {
 	while( scanf( "%d", &R ), R ) {
